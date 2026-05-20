@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LLM Harness Design Patterns — Index</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-elev: #161922;
+    --bg-code: #0b0d12;
+    --fg: #e6e8ec;
+    --fg-dim: #9aa0aa;
+    --accent: #7aa2f7;
+    --accent-2: #bb9af7;
+    --accent-3: #5eead4;
+    --accent-4: #c084fc;
+    --accent-5: #ff9e64;
+    --accent-6: #f7768e;
+    --accent-7: #89ddff;
+    --accent-8: #ff6b9d;
+    --accent-9: #34d399;
+    --good: #9ece6a;
+    --warn: #e0af68;
+    --rule: #232733;
+    --tag: #1f2330;
+    --border: #2a2f3b;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fbfbfd;
+      --bg-elev: #ffffff;
+      --bg-code: #f3f4f8;
+      --fg: #1c1f26;
+      --fg-dim: #5a6170;
+      --accent: #2f56c4;
+      --accent-2: #6b3fbf;
+      --accent-3: #0d9488;
+      --accent-4: #7c3aed;
+      --accent-5: #b25f00;
+      --accent-6: #c83a4f;
+      --accent-7: #0277bd;
+      --accent-8: #c2185b;
+      --accent-9: #047857;
+      --good: #2f7a3a;
+      --warn: #a06a00;
+      --rule: #e5e7ee;
+      --tag: #eef0f6;
+      --border: #d8dbe4;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); color: var(--fg); }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    color: var(--fg-dim);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 34px;
+    line-height: 1.18;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 22px;
+    margin: 32px 0 12px;
+    letter-spacing: -0.005em;
+  }
+  p { margin: 0 0 14px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    background: var(--bg-code);
+    color: var(--fg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    border: 1px solid var(--border);
+  }
+  .lead { color: var(--fg-dim); font-size: 17px; }
+  .index-table-wrap {
+    overflow-x: auto;
+    margin: 24px 0 32px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-elev);
+  }
+  table.index {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  table.index thead th {
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev);
+    color: var(--fg-dim);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 14px 14px;
+    text-align: left;
+    position: sticky;
+    top: 0;
+  }
+  table.index td {
+    padding: 16px 14px;
+    border-top: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  table.index tr:first-child td { border-top: 0; }
+  table.index td.part {
+    width: 11%;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12.5px;
+    color: var(--fg-dim);
+  }
+  table.index td.part .part-label {
+    display: block;
+    color: var(--fg-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 2px;
+  }
+  table.index td.part a {
+    font-size: 13.5px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  table.index td.harness {
+    width: 19%;
+    font-weight: 600;
+    color: var(--fg);
+    font-size: 15px;
+  }
+  table.index td.harness .org {
+    display: block;
+    color: var(--fg-dim);
+    font-weight: 400;
+    font-size: 12.5px;
+    margin-top: 4px;
+  }
+  table.index td.fame {
+    width: 47%;
+    color: var(--fg);
+    font-size: 14px;
+  }
+  table.index td.sources {
+    width: 23%;
+  }
+  table.index td.sources a {
+    display: inline-block;
+    background: var(--tag);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    margin: 0 4px 6px 0;
+  }
+  table.index td.sources a:hover {
+    text-decoration: none;
+    border-color: var(--accent);
+  }
+  /* harness-color accent on the harness name cell */
+  table.index tr.h-poetiq    td.harness { border-left: 3px solid var(--accent);    padding-left: 14px; }
+  table.index tr.h-rstar     td.harness { border-left: 3px solid var(--accent-2);  padding-left: 14px; }
+  table.index tr.h-lats      td.harness { border-left: 3px solid var(--good);      padding-left: 14px; }
+  table.index tr.h-feature   td.harness { border-left: 3px solid var(--accent-3);  padding-left: 14px; }
+  table.index tr.h-deepsearch td.harness { border-left: 3px solid var(--accent-4); padding-left: 14px; }
+  table.index tr.h-deepagent td.harness { border-left: 3px solid var(--accent-5);  padding-left: 14px; }
+  table.index tr.h-alpha     td.harness { border-left: 3px solid var(--accent-6);  padding-left: 14px; }
+  table.index tr.h-arcgentica td.harness { border-left: 3px solid var(--accent-7); padding-left: 14px; }
+  table.index tr.h-reflex    td.harness { border-left: 3px solid var(--accent-8);  padding-left: 14px; }
+  table.index tr.h-voyager   td.harness { border-left: 3px solid var(--accent-9);  padding-left: 14px; }
+  .note {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warn);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--fg-dim);
+    margin: 24px 0;
+  }
+  footer {
+    margin-top: 56px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    color: var(--fg-dim);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">LLM Harness Design Patterns</div>
+  <h1>Index — Ten Harnesses, Ten Writeups</h1>
+  <p class="lead">
+    A series of design-pattern write-ups, each extracting the generalizable LLM-harness tricks from a
+    notable open-source project. Each row below points to the writeup, names the harness, summarizes
+    why the harness is notable, and links to the canonical source so the claim can be verified.
+    The cross-reference matrix across all ten lives at <a href="common.html">common.html</a>.
+  </p>
+</header>
+
+<div class="index-table-wrap">
+<table class="index">
+  <thead>
+    <tr>
+      <th>Writeup</th>
+      <th>Harness</th>
+      <th>What it's famous for</th>
+      <th>Sources</th>
+    </tr>
+  </thead>
+  <tbody>
+
+    <tr class="h-poetiq">
+      <td class="part">
+        <span class="part-label">Part 1</span>
+        <a href="tricks.html">tricks.html</a>
+      </td>
+      <td class="harness">
+        Poetiq ARC-AGI Solver
+        <span class="org">poetiq-ai · 2025</span>
+      </td>
+      <td class="fame">
+        Set the public state-of-the-art on ARC-AGI-1 and ARC-AGI-2 using off-the-shelf commercial
+        LLMs (Gemini 3, GPT-5.1, Claude Haiku, Grok 4 Fast Reasoning) — a compact harness rather
+        than a special model. Open-sourced the entire solver. Cited as evidence that harness
+        design, not model capability alone, determines the leaderboard gap on ARC-AGI.
+      </td>
+      <td class="sources">
+        <a href="https://github.com/poetiq-ai/poetiq-arc-agi-solver" target="_blank" rel="noopener">repo</a>
+        <a href="https://poetiq.ai/posts/arcagi_announcement/" target="_blank" rel="noopener">launch post</a>
+        <a href="https://arcprize.org/" target="_blank" rel="noopener">ARC Prize</a>
+      </td>
+    </tr>
+
+    <tr class="h-rstar">
+      <td class="part">
+        <span class="part-label">Part 2</span>
+        <a href="tricks2.html">tricks2.html</a>
+      </td>
+      <td class="harness">
+        rStar-Math
+        <span class="org">Microsoft Research · 2025</span>
+      </td>
+      <td class="fame">
+        Showed that a 7B small language model, paired with MCTS-style deep thinking and a
+        self-evolved process preference model, can match or exceed OpenAI o1 on competition math.
+        The training apparatus is the headline contribution; the writeup pulls out the
+        <em>training-free</em> harness tricks that transfer to any frozen API model.
+      </td>
+      <td class="sources">
+        <a href="https://arxiv.org/abs/2501.04519" target="_blank" rel="noopener">arXiv 2501.04519</a>
+        <a href="https://www.microsoft.com/en-us/research/publication/rstar-math-small-llms-can-master-math-reasoning-with-self-evolved-deep-thinking/" target="_blank" rel="noopener">MS Research</a>
+        <a href="https://github.com/ai-in-pm/rStar-Math" target="_blank" rel="noopener">community re-implementation</a>
+      </td>
+    </tr>
+
+    <tr class="h-lats">
+      <td class="part">
+        <span class="part-label">Part 3</span>
+        <a href="tricks3.html">tricks3.html</a>
+      </td>
+      <td class="harness">
+        LATS — Language Agent Tree Search
+        <span class="org">Zhou et al. · ICML 2024</span>
+      </td>
+      <td class="fame">
+        Unified reasoning, acting, and planning into one framework: MCTS where each node is an LLM
+        rollout and the value function is the same frozen LLM behind a different prompt.
+        Demonstrated across HotPotQA, HumanEval/MBPP, and WebShop with a single skeleton — the
+        canonical reference for "tree search over LLM trajectories with verbal reflection memory."
+      </td>
+      <td class="sources">
+        <a href="https://arxiv.org/abs/2310.04406" target="_blank" rel="noopener">arXiv 2310.04406</a>
+        <a href="https://lapisrocks.github.io/LanguageAgentTreeSearch/" target="_blank" rel="noopener">project page</a>
+        <a href="https://github.com/lapisrocks/LanguageAgentTreeSearch" target="_blank" rel="noopener">repo</a>
+      </td>
+    </tr>
+
+    <tr class="h-feature">
+      <td class="part">
+        <span class="part-label">Part 4</span>
+        <a href="tricks4.html">tricks4.html</a>
+      </td>
+      <td class="harness">
+        FeatureBench
+        <span class="org">evaluation harness · writeup pending on disk</span>
+      </td>
+      <td class="fame">
+        Evaluation harness for grading agent-produced patches against real test suites — the only
+        non-inference harness in the series. Notable for its dual-patch test masking (the agent
+        can't see the test surface; the grader sees it perfectly), per-repo test-parser dispatch,
+        and two-mode grading (<code>PASS_AND_FAIL</code> vs <code>FAIL_ONLY</code>) for CI-flaky
+        repos. Detailed cells in <a href="common.html">common.html</a>; the standalone tricks4.html
+        writeup is referenced by the series but not yet present on disk.
+      </td>
+      <td class="sources">
+        <a href="common.html">common.html · FeatureBench column</a>
+      </td>
+    </tr>
+
+    <tr class="h-deepsearch">
+      <td class="part">
+        <span class="part-label">Part 5</span>
+        <a href="tricks5.html">tricks5.html</a>
+      </td>
+      <td class="harness">
+        deepsearch-tts
+        <span class="org">hkust-nlp</span>
+      </td>
+      <td class="fame">
+        Test-time-scaling research for web-grounded QA. Central finding: an
+        asymmetric solver/verifier pair — same loop, same tools, different system prompts —
+        benefits more from extra search budget on the verifier side than on the solver side.
+        Also surfaces "budget forcing" (a user-role turn that flips the model from explore to
+        commit) and condition-decomposition confidence scoring.
+      </td>
+      <td class="sources">
+        <a href="https://github.com/hkust-nlp/deepsearch-tts" target="_blank" rel="noopener">repo</a>
+      </td>
+    </tr>
+
+    <tr class="h-deepagent">
+      <td class="part">
+        <span class="part-label">Part 6</span>
+        <a href="tricks6.html">tricks6.html</a>
+      </td>
+      <td class="harness">
+        DeepAgent
+        <span class="org">openJiuwen-ai/agent-store · community</span>
+      </td>
+      <td class="fame">
+        Production-style long-horizon ReAct agent for tool-using QA. Notable for externalized
+        plans (a regex-driven <code>PlanTracker</code> writes <code>todo.md</code> to disk and
+        re-injects it next iteration so the plan survives context trimming), hierarchical agent
+        budgeting with capability gating on sub-agents, and a staged final-answer extraction
+        pipeline (hints → type → typed extraction) with per-stage retry budgets.
+      </td>
+      <td class="sources">
+        <a href="https://github.com/openJiuwen-ai/agent-store/tree/main/community/deepagent" target="_blank" rel="noopener">repo</a>
+      </td>
+    </tr>
+
+    <tr class="h-alpha">
+      <td class="part">
+        <span class="part-label">Part 7</span>
+        <a href="tricks7.html">tricks7.html</a>
+      </td>
+      <td class="harness">
+        AlphaCodium
+        <span class="org">CodiumAI · 2024</span>
+      </td>
+      <td class="fame">
+        Introduced "Flow Engineering" as an alternative to prompt engineering for code generation:
+        a directed multi-stage pipeline (problem reflection → public-test reasoning → solution
+        generation → ranking → AI-test generation → iterative fix) outperformed prior published
+        results on CodeContests using off-the-shelf GPT-4 — without any fine-tuning. Established
+        the now-common pattern of structured YAML handoffs between LLM-driven stages.
+      </td>
+      <td class="sources">
+        <a href="https://arxiv.org/abs/2401.08500" target="_blank" rel="noopener">arXiv 2401.08500</a>
+        <a href="https://github.com/Codium-ai/AlphaCodium" target="_blank" rel="noopener">repo</a>
+        <a href="https://www.codium.ai/" target="_blank" rel="noopener">CodiumAI</a>
+      </td>
+    </tr>
+
+    <tr class="h-arcgentica">
+      <td class="part">
+        <span class="part-label">Part 8</span>
+        <a href="tricks8.html">tricks8.html</a>
+      </td>
+      <td class="harness">
+        ARCgentica
+        <span class="org">Symbolica AI</span>
+      </td>
+      <td class="fame">
+        ARC-AGI solver built on Symbolica's Agentica SDK. Demonstrates the opposite design
+        philosophy from Poetiq's flat ensemble: an LLM-owned REPL loop with recursive sub-agent
+        trees and clean-room re-verification. The harness is thin; the LLM is given a Python
+        runtime with verifier helpers pre-imported and decides — in code — how wide and how
+        deep to branch. Trades ensemble breadth for per-attempt agentic depth. Symbolica reported
+        a state-of-the-art ARC-AGI-2 result in February 2026 using this approach.
+      </td>
+      <td class="sources">
+        <a href="https://github.com/symbolica-ai/arcgentica" target="_blank" rel="noopener">repo</a>
+        <a href="https://www.symbolica.ai/blog" target="_blank" rel="noopener">Symbolica blog</a>
+        <a href="https://github.com/symbolica-ai/agentica-python-sdk" target="_blank" rel="noopener">Agentica SDK</a>
+        <a href="https://arcprize.org/" target="_blank" rel="noopener">ARC Prize</a>
+      </td>
+    </tr>
+
+    <tr class="h-reflex">
+      <td class="part">
+        <span class="part-label">Part 9</span>
+        <a href="tricks9.html">tricks9.html</a>
+      </td>
+      <td class="harness">
+        Reflexion
+        <span class="org">Shinn et al. · NeurIPS 2023</span>
+      </td>
+      <td class="fame">
+        Introduced "verbal reinforcement learning" — an LLM agent reflects on a failed attempt
+        in natural language, and that paragraph is injected as memory on the next attempt. The
+        foundational paper for self-reflective agent loops: every later framework that "writes
+        a post-mortem after each trial and uses it as context" descends from this. Demonstrated
+        across programming (HumanEval), decision-making (AlfWorld), and reasoning (HotPotQA).
+      </td>
+      <td class="sources">
+        <a href="https://arxiv.org/abs/2303.11366" target="_blank" rel="noopener">arXiv 2303.11366</a>
+        <a href="https://github.com/noahshinn/reflexion" target="_blank" rel="noopener">repo</a>
+        <a href="https://nanothoughts.substack.com/p/reflecting-on-reflexion" target="_blank" rel="noopener">author post</a>
+      </td>
+    </tr>
+
+    <tr class="h-voyager">
+      <td class="part">
+        <span class="part-label">Part 10</span>
+        <a href="tricks10.html">tricks10.html</a>
+      </td>
+      <td class="harness">
+        Voyager
+        <span class="org">NVIDIA / MineDojo · 2023</span>
+      </td>
+      <td class="fame">
+        First lifelong-learning LLM agent in Minecraft. Introduced the canonical three-component
+        recipe for open-ended LLM agents: <strong>automatic curriculum</strong> (let the agent
+        propose its next sub-goal), <strong>iterative prompting with environment feedback</strong>
+        (refine code on raw env errors and chat output), and an <strong>ever-growing skill
+        library</strong> (verified executable code, embedded and retrieved for future tasks).
+        Outperformed prior agents on novel-item discovery and exploration distance — the template
+        most subsequent "agent with a skill library" works build on.
+      </td>
+      <td class="sources">
+        <a href="https://arxiv.org/abs/2305.16291" target="_blank" rel="noopener">arXiv 2305.16291</a>
+        <a href="https://voyager.minedojo.org/" target="_blank" rel="noopener">project page</a>
+        <a href="https://github.com/MineDojo/Voyager" target="_blank" rel="noopener">repo</a>
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+</div>
+
+<div class="note">
+  <strong>About the source links.</strong> The "Sources" column is the grounding for each
+  "what it's famous for" claim — repo, paper, blog post, or leaderboard. If a claim is wrong
+  or out of date, the linked source is the place to start. Where a harness's official venue
+  is the GitHub repo's README (no paper), that's what the source links to.
+</div>
+
+<footer>
+  Series index. Each writeup lives in its own file:
+  <a href="tricks.html">tricks.html</a>,
+  <a href="tricks2.html">tricks2.html</a>,
+  <a href="tricks3.html">tricks3.html</a>,
+  <a href="tricks4.html">tricks4.html</a>,
+  <a href="tricks5.html">tricks5.html</a>,
+  <a href="tricks6.html">tricks6.html</a>,
+  <a href="tricks7.html">tricks7.html</a>,
+  <a href="tricks8.html">tricks8.html</a>,
+  <a href="tricks9.html">tricks9.html</a>,
+  <a href="tricks10.html">tricks10.html</a>.
+  Cross-reference matrix: <a href="common.html">common.html</a>.
+</footer>
+
+</div>
+</body>
+</html>
