@@ -1,0 +1,2312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Cracked Harness Patterns: Extract Maximum Juice from Your LLMs</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --bg-elev: #161922;
+    --bg-elev-2: #1c2030;
+    --bg-code: #0b0d12;
+    --fg: #e6e8ec;
+    --fg-dim: #9aa0aa;
+    --fg-dimmer: #6c727f;
+    --accent: #7aa2f7;
+    --accent-2: #bb9af7;
+    --accent-3: #5eead4;
+    --accent-4: #c084fc;
+    --accent-5: #ff9e64;
+    --accent-6: #f7768e;
+    --accent-7: #89ddff;
+    --accent-8: #ff6b9d;
+    --accent-9: #34d399;
+    --good: #9ece6a;
+    --warn: #e0af68;
+    --rule: #232733;
+    --tag: #1f2330;
+    --border: #2a2f3b;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #fbfbfd;
+      --bg-elev: #ffffff;
+      --bg-elev-2: #f5f6fa;
+      --bg-code: #f3f4f8;
+      --fg: #1c1f26;
+      --fg-dim: #5a6170;
+      --fg-dimmer: #8a909c;
+      --accent: #2f56c4;
+      --accent-2: #6b3fbf;
+      --accent-3: #0d9488;
+      --accent-4: #7c3aed;
+      --accent-5: #b25f00;
+      --accent-6: #c83a4f;
+      --accent-7: #0277bd;
+      --accent-8: #c2185b;
+      --accent-9: #047857;
+      --good: #2f7a3a;
+      --warn: #a06a00;
+      --rule: #e5e7ee;
+      --tag: #eef0f6;
+      --border: #d8dbe4;
+    }
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { background: var(--bg); color: var(--fg); }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 56px 24px 96px;
+  }
+  header.hero {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 12px;
+    color: var(--fg-dim);
+    margin-bottom: 12px;
+  }
+  h1 {
+    font-size: 34px;
+    line-height: 1.18;
+    margin: 0 0 16px;
+    letter-spacing: -0.01em;
+  }
+  h2 {
+    font-size: 22px;
+    margin: 0 0 12px;
+    letter-spacing: -0.005em;
+  }
+  h3 {
+    font-size: 17px;
+    margin: 28px 0 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+    font-weight: 700;
+  }
+  h4 {
+    font-size: 17px;
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+  }
+  p { margin: 0 0 14px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    background: var(--bg-code);
+    color: var(--fg);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.88em;
+    border: 1px solid var(--border);
+  }
+  .lead { color: var(--fg-dim); font-size: 17px; }  /* ---------- Table of contents ---------- */
+  nav.toc {
+    margin: 32px 0 40px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  nav.toc .toc-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev-2);
+    color: var(--fg-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  nav.toc table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  nav.toc td {
+    padding: 14px 20px;
+    border-top: 1px solid var(--rule);
+    vertical-align: top;
+  }
+  nav.toc tr:first-child td { border-top: 0; }
+  nav.toc td.pattern-cell {
+    width: 44%;
+    font-weight: 600;
+    color: var(--fg);
+  }
+  nav.toc td.pattern-cell .part-num {
+    display: block;
+    color: var(--fg-dim);
+    font-weight: 400;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 4px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  nav.toc td.pattern-cell .pattern-name {
+    font-size: 15px;
+  }
+  nav.toc td.instances-cell {
+    color: var(--fg-dim);
+    font-size: 13px;
+  }
+  nav.toc td.instances-cell a {
+    color: var(--fg);
+  }
+  nav.toc td.instances-cell .sep {
+    color: var(--fg-dimmer);
+    padding: 0 6px;
+  }
+  nav.toc tr.p1 td.pattern-cell { border-left: 3px solid var(--accent);   padding-left: 17px; }
+  nav.toc tr.p2 td.pattern-cell { border-left: 3px solid var(--accent-3); padding-left: 17px; }
+  nav.toc tr.p3 td.pattern-cell { border-left: 3px solid var(--accent-5); padding-left: 17px; }
+  nav.toc tr.p4 td.pattern-cell { border-left: 3px solid var(--good);     padding-left: 17px; }
+  nav.toc tr.p5 td.pattern-cell { border-left: 3px solid var(--accent-8); padding-left: 17px; }
+  nav.toc tr.pdebate td.pattern-cell { border-left: 3px solid var(--accent-2); padding-left: 17px; }
+  nav.toc tr.p6 td.pattern-cell { border-left: 3px solid var(--accent-4); padding-left: 17px; }
+  nav.toc tr.p7 td.pattern-cell { border-left: 3px solid var(--accent-9); padding-left: 17px; }
+  nav.toc tr.p8 td.pattern-cell { border-left: 3px solid var(--accent-6); padding-left: 17px; }
+  nav.toc tr.p9 td.pattern-cell { border-left: 3px solid var(--accent-7); padding-left: 17px; }  /* ---------- Note block ---------- */
+  .note {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--warn);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 14px;
+    color: var(--fg-dim);
+    margin: 24px 0 56px;
+  }  /* ---------- Pattern section ---------- */
+  .pattern-section {
+    margin: 80px 0 0;
+    scroll-margin-top: 24px;
+    padding-top: 24px;
+    border-top: 3px solid var(--section-accent);
+  }
+  .pattern-section.p1 { --section-accent: var(--accent);   }
+  .pattern-section.p2 { --section-accent: var(--accent-3); }
+  .pattern-section.p3 { --section-accent: var(--accent-5); }
+  .pattern-section.p4 { --section-accent: var(--good);     }
+  .pattern-section.p5 { --section-accent: var(--accent-8); }
+  .pattern-section.pdebate { --section-accent: var(--accent-2); }
+  .pattern-section.p6      { --section-accent: var(--accent-4); }
+  .pattern-section.p7      { --section-accent: var(--accent-9); }
+  .pattern-section.p8      { --section-accent: var(--accent-6); }
+  .pattern-section.p9      { --section-accent: var(--accent-7); }  .pattern-head { margin-bottom: 18px; }
+  .pattern-head .part-num {
+    color: var(--section-accent);
+    font-size: 12px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .pattern-head h2 {
+    font-size: 26px;
+    color: var(--fg);
+    margin-bottom: 8px;
+    letter-spacing: -0.01em;
+  }
+  .pattern-head .tagline {
+    color: var(--fg-dim);
+    font-style: italic;
+    font-size: 16px;
+    margin: 0;
+  }  /* ---------- Summary grid (what/when/when-not) ---------- */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin: 24px 0 28px;
+  }
+  @media (max-width: 768px) {
+    .summary-grid { grid-template-columns: 1fr; }
+  }
+  .summary-grid > div {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .summary-grid .label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--section-accent);
+    margin-bottom: 8px;
+  }
+  .summary-grid p {
+    font-size: 13.5px;
+    color: var(--fg);
+    margin: 0;
+    line-height: 1.55;
+  }  /* ---------- Instance card ---------- */
+  .instances-head {
+    margin: 32px 0 14px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--fg-dim);
+    font-weight: 700;
+  }
+  .instance-card {
+    position: relative;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--instance-accent);
+    border-radius: 10px;
+    padding: 20px 22px;
+    margin: 0 0 22px;
+    scroll-margin-top: 24px;
+  }
+  .instance-card.h-poetiq     { --instance-accent: var(--accent);   }
+  .instance-card.h-rstar      { --instance-accent: var(--accent-2); }
+  .instance-card.h-lats       { --instance-accent: var(--good);     }
+  .instance-card.h-deepsearch { --instance-accent: var(--accent-4); }
+  .instance-card.h-deepagent  { --instance-accent: var(--accent-5); }
+  .instance-card.h-alpha      { --instance-accent: var(--accent-6); }
+  .instance-card.h-arcgentica { --instance-accent: var(--accent-7); }
+  .instance-card.h-reflex     { --instance-accent: var(--accent-8); }
+  .instance-card.h-voyager    { --instance-accent: var(--accent-9); }
+  .instance-card.h-smc        { --instance-accent: var(--accent-7); }
+  .instance-card.h-mad        { --instance-accent: var(--accent-2); }
+  .instance-card.h-madmm      { --instance-accent: var(--accent-4); }
+  .instance-card.h-imad       { --instance-accent: var(--accent-7); }
+  .instance-card.h-meta       { --instance-accent: var(--accent-9); }
+  .instance-card.h-prism      { --instance-accent: var(--accent-3); }
+  .instance-card.h-poetiqrsi  { --instance-accent: var(--accent-5); }
+  .instance-card.h-rlm        { --instance-accent: var(--accent-3); }
+  .instance-card.h-cc         { --instance-accent: var(--accent-6); }
+  .instance-card.h-yunque     { --instance-accent: var(--accent-4); }
+  .instance-card.h-hasp       { --instance-accent: var(--accent-2); }
+  .instance-card.h-skillflow  { --instance-accent: var(--accent-8); }  .instance-card h4 {
+    color: var(--fg);
+  }
+  .instance-card h4 .harness-name {
+    color: var(--instance-accent);
+  }
+  .instance-card .harness-mini {
+    font-size: 12px;
+    color: var(--fg-dim);
+    margin-bottom: 14px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    line-height: 1.5;
+  }
+  .instance-card .harness-mini .sep {
+    color: var(--fg-dimmer);
+    padding: 0 6px;
+  }
+  .instance-card .label {
+    display: block;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 10.5px;
+    font-weight: 700;
+    color: var(--instance-accent);
+    margin: 16px 0 6px;
+  }
+  .instance-card p {
+    font-size: 14.5px;
+    color: var(--fg);
+    margin: 0 0 12px;
+  }  /* ---------- Illustrations (boxes + arrows) ---------- */
+  .illustration {
+    background: var(--bg-elev-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    margin: 14px 0 4px;
+  }
+  .illustration.archetype {
+    border-style: dashed;
+    border-color: var(--section-accent);
+    background: color-mix(in srgb, var(--section-accent) 5%, var(--bg-elev-2));
+    position: relative;
+  }
+  .illustration.archetype::before {
+    content: 'ARCHETYPE: the abstract move';
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    color: var(--section-accent);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    font-weight: 700;
+  }
+  .flow-col {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+  .flow-row {
+    display: flex;
+    align-items: stretch;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .flow-row > .box, .flow-row > .group {
+    flex: 1 1 0;
+    min-width: 140px;
+  }
+  .group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .box {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--fg);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  .box .box-title {
+    font-weight: 600;
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+  .box .box-sub {
+    color: var(--fg-dim);
+    font-size: 11.5px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    margin-top: 3px;
+    line-height: 1.35;
+  }
+  /* Instance-card illustrations use the harness accent; archetype uses the pattern accent */
+  .instance-card .box.accent {
+    border-color: var(--instance-accent);
+    background: color-mix(in srgb, var(--instance-accent) 8%, var(--bg-elev));
+  }
+  .instance-card .box.accent .box-title { color: var(--instance-accent); }
+  .illustration.archetype .box.accent {
+    border-color: var(--section-accent);
+    background: color-mix(in srgb, var(--section-accent) 10%, var(--bg-elev));
+  }
+  .illustration.archetype .box.accent .box-title { color: var(--section-accent); }
+  .box.muted {
+    background: var(--bg-elev-2);
+    color: var(--fg-dim);
+  }
+  .box.muted .box-title { color: var(--fg-dim); font-weight: 500; }
+  .box.reject {
+    border-color: var(--accent-6);
+    background: color-mix(in srgb, var(--accent-6) 6%, var(--bg-elev-2));
+    color: var(--fg-dim);
+    text-decoration: line-through;
+    text-decoration-color: var(--accent-6);
+  }
+  .arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--fg-dimmer);
+    font-size: 18px;
+    line-height: 1;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    padding: 0 2px;
+    flex: 0 0 auto;
+    min-width: 18px;
+  }
+  .flow-col .arrow {
+    height: 22px;
+    padding: 2px 0;
+  }
+  .flow-col > .flow-row + .arrow,
+  .flow-col > .box + .arrow,
+  .flow-col > .arrow + .flow-row,
+  .flow-col > .arrow + .box {
+    align-self: center;
+  }
+  .arrow-label {
+    color: var(--fg-dim);
+    font-size: 11.5px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    text-align: center;
+    padding: 2px 0 4px;
+  }  /* ---------- Cheatsheet ---------- */
+  .cheatsheet {
+    margin-top: 96px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--bg-elev);
+    overflow: hidden;
+  }
+  .cheatsheet-head {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-elev-2);
+    color: var(--fg-dim);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+  }
+  .cheatsheet table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .cheatsheet th, .cheatsheet td {
+    padding: 12px 16px;
+    border-top: 1px solid var(--rule);
+    text-align: left;
+    vertical-align: top;
+  }
+  .cheatsheet thead th {
+    background: var(--bg-elev-2);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--fg-dim);
+    font-weight: 700;
+    border-top: 0;
+  }
+  .cheatsheet td.harness-cell {
+    font-weight: 600;
+    width: 18%;
+    color: var(--fg);
+  }
+  .cheatsheet td.task-cell {
+    color: var(--fg-dim);
+    width: 38%;
+    font-size: 13px;
+  }
+  .cheatsheet td.patterns-cell { width: 44%; }
+  .cheatsheet .pattern-badge {
+    display: inline-block;
+    background: var(--tag);
+    border: 1px solid var(--border);
+    color: var(--fg);
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    margin: 2px 4px 2px 0;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    line-height: 1.4;
+  }
+  .cheatsheet .pattern-badge:hover {
+    border-color: var(--fg);
+    text-decoration: none;
+  }
+  .cheatsheet .pattern-badge .num { color: var(--fg-dim); margin-right: 4px; }
+  .cheatsheet tr.h-poetiq     td.harness-cell { border-left: 3px solid var(--accent);   padding-left: 13px; }
+  .cheatsheet tr.h-rstar      td.harness-cell { border-left: 3px solid var(--accent-2); padding-left: 13px; }
+  .cheatsheet tr.h-lats       td.harness-cell { border-left: 3px solid var(--good);     padding-left: 13px; }
+  .cheatsheet tr.h-deepsearch td.harness-cell { border-left: 3px solid var(--accent-4); padding-left: 13px; }
+  .cheatsheet tr.h-deepagent  td.harness-cell { border-left: 3px solid var(--accent-5); padding-left: 13px; }
+  .cheatsheet tr.h-alpha      td.harness-cell { border-left: 3px solid var(--accent-6); padding-left: 13px; }
+  .cheatsheet tr.h-arcgentica td.harness-cell { border-left: 3px solid var(--accent-7); padding-left: 13px; }
+  .cheatsheet tr.h-reflex     td.harness-cell { border-left: 3px solid var(--accent-8); padding-left: 13px; }
+  .cheatsheet tr.h-voyager    td.harness-cell { border-left: 3px solid var(--accent-9); padding-left: 13px; }
+  .cheatsheet tr.h-smc        td.harness-cell { border-left: 3px solid var(--accent-7); padding-left: 13px; }
+  .cheatsheet tr.h-mad        td.harness-cell { border-left: 3px solid var(--accent-2); padding-left: 13px; }
+  .cheatsheet tr.h-madmm      td.harness-cell { border-left: 3px solid var(--accent-4); padding-left: 13px; }
+  .cheatsheet tr.h-imad       td.harness-cell { border-left: 3px solid var(--accent-7); padding-left: 13px; }
+  .cheatsheet tr.h-meta       td.harness-cell { border-left: 3px solid var(--accent-9); padding-left: 13px; }
+  .cheatsheet tr.h-prism      td.harness-cell { border-left: 3px solid var(--accent-3); padding-left: 13px; }
+  .cheatsheet tr.h-poetiqrsi  td.harness-cell { border-left: 3px solid var(--accent-5); padding-left: 13px; }
+  .cheatsheet tr.h-rlm        td.harness-cell { border-left: 3px solid var(--accent-3); padding-left: 13px; }
+  .cheatsheet tr.h-cc         td.harness-cell { border-left: 3px solid var(--accent-6); padding-left: 13px; }
+  .cheatsheet tr.h-yunque     td.harness-cell { border-left: 3px solid var(--accent-4); padding-left: 13px; }
+  .cheatsheet tr.h-hasp       td.harness-cell { border-left: 3px solid var(--accent-2); padding-left: 13px; }
+  .cheatsheet tr.h-skillflow  td.harness-cell { border-left: 3px solid var(--accent-8); padding-left: 13px; }  /* ---------- Footer ---------- */
+  footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    color: var(--fg-dim);
+    font-size: 13px;
+  }
+  footer a { color: var(--fg); }  /* ---------- Mermaid integration ---------- */
+  /* Hide mermaid source text until it's rendered into SVG */
+  pre.mermaid {
+    margin: 0;
+    background: transparent;
+    color: var(--fg-dim);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow: hidden;
+    visibility: hidden;
+  }
+  pre.mermaid[data-processed="true"] {
+    visibility: visible;
+  }
+  pre.mermaid svg {
+    max-width: 100%;
+    height: auto !important;
+    display: block;
+    margin: 0 auto;
+  }
+  /* Default node styling, inherits theme tokens */
+  .mermaid .node rect,
+  .mermaid .node polygon,
+  .mermaid .node circle,
+  .mermaid .node ellipse,
+  .mermaid .node path {
+    fill: var(--bg-elev);
+    stroke: var(--border);
+    stroke-width: 1px;
+  }
+  .mermaid .node .nodeLabel,
+  .mermaid .node foreignObject div,
+  .mermaid .node text {
+    color: var(--fg) !important;
+    fill: var(--fg) !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif !important;
+    font-size: 12.5px !important;
+    line-height: 1.55 !important;
+    white-space: normal !important;
+    word-spacing: 0.05em !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+    letter-spacing: 0.005em !important;
+  }
+  .mermaid .node foreignObject {
+    overflow: visible !important;
+  }
+  .mermaid .node foreignObject > div {
+    padding: 8px 14px !important;
+    text-align: center !important;
+    display: block !important;
+    white-space: normal !important;
+  }
+  .mermaid .node foreignObject p,
+  .mermaid .node foreignObject .nodeLabel {
+    margin: 0 !important;
+    padding: 0 !important;
+    word-spacing: 0.06em !important;
+    letter-spacing: 0.005em !important;
+  }
+  .mermaid .node foreignObject br {
+    display: initial !important;
+  }
+  .mermaid .edgePath .path,
+  .mermaid .flowchart-link,
+  .mermaid path.flowchart-link {
+    stroke: var(--fg-dimmer) !important;
+    stroke-width: 1.4px !important;
+    fill: none !important;
+  }
+  .mermaid marker path,
+  .mermaid #arrowhead path,
+  .mermaid defs marker path {
+    fill: var(--fg-dimmer) !important;
+    stroke: var(--fg-dimmer) !important;
+  }
+  .mermaid .edgeLabel,
+  .mermaid .edgeLabel rect,
+  .mermaid .edgeLabel foreignObject div {
+    background: var(--bg-elev-2) !important;
+    color: var(--fg-dim) !important;
+    fill: var(--bg-elev-2) !important;
+    font-size: 11.5px !important;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace !important;
+    white-space: normal !important;
+    word-spacing: 0.05em !important;
+  }
+  .mermaid .edgeLabel foreignObject > div {
+    padding: 2px 8px !important;
+  }
+  .mermaid .label-container { fill: var(--bg-elev); stroke: var(--border); }
+  /* muted nodes, for inputs / passive boxes */
+  .mermaid .node.muted rect,
+  .mermaid .node.muted polygon,
+  .mermaid .node.muted path {
+    fill: var(--bg-elev-2);
+    stroke: var(--border);
+  }
+  .mermaid .node.muted .nodeLabel,
+  .mermaid .node.muted foreignObject div {
+    color: var(--fg-dim) !important;
+    fill: var(--fg-dim) !important;
+  }
+  /* reject nodes, strikethrough, accent-6 border */
+  .mermaid .node.reject rect,
+  .mermaid .node.reject polygon,
+  .mermaid .node.reject path {
+    fill: color-mix(in srgb, var(--accent-6) 8%, var(--bg-elev-2));
+    stroke: var(--accent-6);
+  }
+  .mermaid .node.reject .nodeLabel,
+  .mermaid .node.reject foreignObject div {
+    color: var(--fg-dim) !important;
+    fill: var(--fg-dim) !important;
+    text-decoration: line-through;
+  }
+  /* note nodes, explanation bubbles with dashed border */
+  .mermaid .node.note rect,
+  .mermaid .node.note polygon,
+  .mermaid .node.note path {
+    fill: var(--bg-elev-2);
+    stroke: var(--fg-dimmer);
+    stroke-width: 1px;
+    stroke-dasharray: 4 3;
+  }
+  .mermaid .node.note .nodeLabel,
+  .mermaid .node.note foreignObject div {
+    color: var(--fg-dim) !important;
+    fill: var(--fg-dim) !important;
+    font-style: italic;
+  }
+  /* archetype illustrations use the PATTERN accent (var --section-accent) */
+  .illustration.archetype .mermaid .node.accent rect,
+  .illustration.archetype .mermaid .node.accent polygon,
+  .illustration.archetype .mermaid .node.accent path {
+    fill: color-mix(in srgb, var(--section-accent) 12%, var(--bg-elev));
+    stroke: var(--section-accent);
+    stroke-width: 1.5px;
+  }
+  .illustration.archetype .mermaid .node.accent .nodeLabel,
+  .illustration.archetype .mermaid .node.accent foreignObject div {
+    color: var(--section-accent) !important;
+    fill: var(--section-accent) !important;
+  }
+  /* Archetype diagrams get larger fonts since they have more room */
+  .illustration.archetype .mermaid .node .nodeLabel,
+  .illustration.archetype .mermaid .node foreignObject div,
+  .illustration.archetype .mermaid .node foreignObject p,
+  .illustration.archetype .mermaid .node text {
+    font-size: 19px !important;
+    line-height: 1.5 !important;
+  }
+  .illustration.archetype .mermaid .edgeLabel,
+  .illustration.archetype .mermaid .edgeLabel foreignObject div,
+  .illustration.archetype .mermaid .edgeLabel span {
+    font-size: 16.5px !important;
+  }
+  /* instance-card illustrations use the HARNESS accent (var --instance-accent) */
+  .instance-card .illustration .mermaid .node.accent rect,
+  .instance-card .illustration .mermaid .node.accent polygon,
+  .instance-card .illustration .mermaid .node.accent path {
+    fill: color-mix(in srgb, var(--instance-accent) 12%, var(--bg-elev));
+    stroke: var(--instance-accent);
+    stroke-width: 1.5px;
+  }
+  .instance-card .illustration .mermaid .node.accent .nodeLabel,
+  .instance-card .illustration .mermaid .node.accent foreignObject div {
+    color: var(--instance-accent) !important;
+    fill: var(--instance-accent) !important;
+  }
+</style>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';  // Cache original mermaid source on each <pre.mermaid> before mermaid mutates it.
+  const blocks = Array.from(document.querySelectorAll('pre.mermaid'));
+  blocks.forEach(el => { el.dataset.src = el.textContent; });  function themeVars() {
+    const s = getComputedStyle(document.documentElement);
+    const v = (n) => s.getPropertyValue(n).trim();
+    const isLight = window.matchMedia('(prefers-color-scheme: light)').matches;
+    return {
+      darkMode: !isLight,
+      background: v('--bg-elev-2'),
+      mainBkg: v('--bg-elev'),
+      primaryColor: v('--bg-elev'),
+      primaryTextColor: v('--fg'),
+      primaryBorderColor: v('--border'),
+      secondaryColor: v('--bg-elev-2'),
+      tertiaryColor: v('--bg-elev-2'),
+      lineColor: v('--fg-dimmer'),
+      textColor: v('--fg'),
+      nodeBorder: v('--border'),
+      clusterBkg: v('--bg-elev-2'),
+      clusterBorder: v('--border'),
+      edgeLabelBackground: v('--bg-elev-2'),
+      fontFamily: '-apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto, sans-serif',
+    };
+  }  function configure() {
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: 'base',
+      themeVariables: themeVars(),
+      securityLevel: 'loose',
+      flowchart: { curve: 'basis', htmlLabels: true, useMaxWidth: true, padding: 18, nodeSpacing: 55, rankSpacing: 70, diagramPadding: 24 },
+    });
+  }  async function renderAll() {
+    blocks.forEach(el => {
+      el.removeAttribute('data-processed');
+      el.innerHTML = el.dataset.src;
+    });
+    await mermaid.run({ querySelector: 'pre.mermaid' });
+  }  configure();
+  renderAll();  // Re-render on color-scheme change so accent colors re-resolve from CSS tokens.
+  window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', async () => {
+    configure();
+    await renderAll();
+  });
+</script>
+</head>
+<body>
+<div class="wrap"><header class="hero">
+  <div class="eyebrow">LLM Harness Design Patterns</div>
+  <h1>Cracked Harness Patterns: Extract Maximum Brain Power from Your LLM</h1>
+  <p class="lead">
+    Several open-source LLM harnesses, for ARC-AGI, competition math, web QA, code contests,
+    Minecraft, and multi-hop QA, converge on a small set of design patterns that lift a model like GPT-5
+    way past what the model alone can do. This page names the patterns and shows how each harness
+    instantiates them.
+  </p>
+  <p class="lead">
+    Each pattern comes with what it helps with, when to use it, when not to, an archetype diagram of
+    the abstract move, and three or four concrete instances drawn from harnesses that build
+    differently around the same idea.
+  </p>
+</header><!-- ============================================================
+     TABLE OF CONTENTS
+     ============================================================ -->
+<nav class="toc" aria-label="Table of contents">
+  <div class="toc-head">Table of contents: nine meta-patterns</div>
+  <table>
+    <tbody>
+      <tr class="p1">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 1</span>
+          <span class="pattern-name"><a href="#p-parallel-aggregation">Ensemble of Solvers</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-parallel-poetiq">Poetiq</a><span class="sep">·</span>
+          <a href="#i-parallel-alpha">AlphaCodium</a>
+        </td>
+      </tr>
+      <tr class="p2">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 2</span>
+          <span class="pattern-name"><a href="#p-asymmetric-roles">Separation of Creativity and Critique</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-roles-lats">LATS</a><span class="sep">·</span>
+          <a href="#i-roles-deepsearch">deepsearch-tts</a><span class="sep">·</span>
+          <a href="#i-roles-alpha">AlphaCodium</a>
+        </td>
+      </tr>
+      <tr class="p5">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 3</span>
+          <span class="pattern-name"><a href="#p-verbal-rl">Natural Language Reinforcement Learning</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-vrl-reflex">Reflexion</a><span class="sep">·</span>
+          <a href="#i-vrl-lats">LATS</a><span class="sep">·</span>
+          <a href="#i-vrl-voyager">Voyager</a>
+        </td>
+      </tr>
+      <tr class="p3">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 4</span>
+          <span class="pattern-name"><a href="#p-tree-search">Tree Search: Far and Wide</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-tree-rstar">rStar-Math</a><span class="sep">·</span>
+          <a href="#i-tree-lats">LATS</a><span class="sep">·</span>
+          <a href="#i-tree-smc">Particle Filtering</a>
+        </td>
+      </tr>
+      <tr class="pdebate">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 5</span>
+          <span class="pattern-name"><a href="#p-multi-agent-debate">Multi-Agent Debate</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-mad-canonical">MAD</a><span class="sep">·</span>
+          <a href="#i-mad-madmm">MAD-M²</a><span class="sep">·</span>
+          <a href="#i-mad-imad">iMAD</a>
+        </td>
+      </tr>
+      <tr class="p6">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 6</span>
+          <span class="pattern-name"><a href="#p-per-problem-routing">Per-Problem Routing</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-routing-meta">Meta-Harness</a><span class="sep">·</span>
+          <a href="#i-routing-prism">PRISM</a>
+        </td>
+      </tr>
+      <tr class="p7">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 7</span>
+          <span class="pattern-name"><a href="#p-harness-search">Harness as Search Variable</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-search-meta">Meta-Harness</a><span class="sep">·</span>
+          <a href="#i-search-poetiqrsi">Poetiq Meta-System</a>
+        </td>
+      </tr>
+      <tr class="p8">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 8</span>
+          <span class="pattern-name"><a href="#p-recursive-decomposition">Decompose-and-Recurse: The Harness Calls Itself</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-recurse-rlm">Recursive Language Models</a><span class="sep">·</span>
+          <a href="#i-recurse-cc">Claude Code subagents</a><span class="sep">·</span>
+          <a href="#i-recurse-yunque">Yunque DeepResearch</a>
+        </td>
+      </tr>
+      <tr class="p9">
+        <td class="pattern-cell">
+          <span class="part-num">Pattern 9</span>
+          <span class="pattern-name"><a href="#p-skill-retrieval">Skill Retrieval: K Nearest Examples</a></span>
+        </td>
+        <td class="instances-cell">
+          <a href="#i-knn-voyager">Voyager</a><span class="sep">·</span>
+          <a href="#i-knn-hasp">HASP</a><span class="sep">·</span>
+          <a href="#i-knn-skillflow">SkillFlow</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</nav><div class="note">
+  <strong>Why patterns, not harnesses.</strong> Most writeups of these systems walk through one
+  harness at a time, which buries the design moves under harness-specific details. Reading them side
+  by side, the same moves keep recurring in different dialects. The page below names those moves at
+  the level of abstraction at which they actually port between domains, "multiple experts aggregated
+  by a verifier" rather than "MCTS multi-seed trees" or "code-execution voting." Each pattern is
+  admitted only when several harnesses instantiate it in materially different ways. A harness
+  cheatsheet at the bottom links each system to every pattern it appears in.
+</div><!-- ============================================================
+     PATTERN 1: Ensemble of Solvers
+     ============================================================ -->
+<section class="pattern-section p1" id="p-parallel-aggregation">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 1</div>
+    <h2>Ensemble of Solvers</h2>
+    <p class="tagline">Produce many candidates with engineered variation, in parallel or sequentially across iterations; score each with an oracle or executor; aggregate by votes, scores, or a strict ratchet. Never aggregate by the LLM's own confidence.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Turning a frozen API model into an ensemble without retraining. The LLM's self-reported confidence is a poor signal, and N copies of the same call are correlated. An external verifier turns "many guesses", whether produced in parallel or sequentially, into a usable distribution to aggregate over.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>Tasks where (a) you can produce many candidates (in one shot or across iterations) and (b) there is a deterministic verifier, code execution, exact-match grading, a simulator, oracle outputs, or a near-verifier the harness can build (a fabricated test suite, an LLM-as-critic with process-graded few-shots).</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>Open-ended generation with no oracle (poetry, free-form summarization without a fixed reference). Latency-bound single-call use cases. Tasks where verification is as expensive as solving, so the cost saving of cheap-verifier ensembling disappears.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    task["One hard problem to solve"]:::muted
+    c1["Attempt 1"]:::accent
+    c2["Attempt 2"]:::accent
+    c3["Attempt 3"]:::accent
+    cN["Attempt N"]:::accent
+    diversify["The attempts are forced to be different from each other: <br> different prompts · different examples shown · <br> different random seeds · or sequential refinement"]:::note
+    ver["An external checker, runs the code, compares to an <br> answer key, or any other deterministic judge. <br> Never the model's opinion of its own answer."]
+    agg["Pick the winner from the checker's verdicts: <br> majority vote, highest score, or 'only ever <br> accept changes that pass strictly more checks'"]:::accent
+    key["Key idea, never trust the model's <br> own confidence; only the external check"]:::note
+
+    task --> c1 & c2 & c3 & cN
+    diversify ~~~ c2
+    c1 & c2 & c3 & cN -- each candidate is checked --> ver
+    ver --> agg
+    key ~~~ ver
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P1: Poetiq -->
+  <article class="instance-card h-poetiq" id="i-parallel-poetiq">
+    <h4><span class="harness-name">Poetiq</span>: engineered diversity, then output-space majority vote</h4>
+    <div class="harness-mini">
+      ARC-AGI grid-transformation puzzles<span class="sep">·</span>
+      public SOTA, 2 attempts/task<span class="sep">·</span>
+      Gemini 3 / GPT-5.1 / Claude / Grok (frozen API)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Run a wide flat ensemble of independent expert calls, each producing a Python
+      <code>transform(grid)</code>. Diversify them up front with three composable knobs:
+      <code>shuffle_examples</code>, worst-to-best <code>improving_order</code>, and Bernoulli
+      sampling of past attempts shown in the prompt. Execute every candidate in a sandbox; bucket by
+      the canonical hash of the test output; vote by bucket size; pick the top two distinct outputs
+      for ARC's two-attempt slot.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      ARC awards correctness on the test grid; how the code was derived is irrelevant. Voting in
+      artifact space (edit distance, AST similarity) splits one consensus across many semantically-
+      equivalent code shapes. Naive parallel calls also collapse to correlated samples, so the
+      diversification knobs are mandatory for the vote to mean anything.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    task["One ARC puzzle: <br> a few example input/output grids, <br> plus a test input grid to solve"]:::muted
+    n["Many independent solver calls. <br> Each writes a Python program that <br> tries to map input grids to outputs."]:::muted
+    div["How they are made different: <br> • shuffle the order of example puzzles shown to the model <br> • order examples worst-to-best <br> • randomly include or exclude past attempts"]:::note
+    sb["For each candidate program, run it in a sandbox <br> on the example grids and the test grid"]
+    bucket["Group programs by the output they produced <br> on the test grid. The biggest group wins."]:::accent
+    top["Submit the two most-voted outputs as <br> ARC's two allowed attempts"]:::accent
+
+    task --> n
+    div ~~~ n
+    n --> sb
+    sb --> bucket
+    bucket --> top
+</pre>
+    </div>
+  </article>  <!-- P1: AlphaCodium -->
+  <article class="instance-card h-alpha" id="i-parallel-alpha">
+    <h4><span class="harness-name">AlphaCodium</span>: iterate-and-keep-best by pass count (strict ratchet)</h4>
+    <div class="harness-mini">
+      CodeContests competitive programming<span class="sep">·</span>
+      beat prior published results on CodeContests<span class="sep">·</span>
+      GPT-4 (frozen, no fine-tuning)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Produce many code candidates over a multi-stage pipeline. Score each candidate by how many
+      tests it passes, public tests cheaply, LLM-fabricated tests as a second tier. Keep an explicit
+      <code>passed_tests</code> set. A candidate or edit is accepted only if it strictly grows the
+      set; otherwise revert and try again. The "best so far" is the one whose pass-set is the
+      strict superset of all others, a monotone aggregation.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Iterative fix loops drift: patch test A, break test B, patch B, break A. Pass count
+      wobbles; "improving" is illusory. Aggregating by the executor's verdict, with a strict ratchet,
+      makes forward progress measurable. The verifier (test suite) is doing the aggregation, not the
+      LLM's opinion of whether the new code looks better.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    code["A candidate solution (code)"]:::muted
+    set["The set of tests this code currently passes"]:::muted
+    edit["Propose an edit aimed at a failing test"]:::accent
+    rerun["Re-run every test that used to pass, <br> plus the failing one we are targeting"]
+    check{"Did the edit break any test <br> that used to pass?"}
+    revert["Throw the edit away, <br> keep the previous code"]:::reject
+    accept["Keep the edit. Update the <br> set of passing tests to include the new one."]:::accent
+    grow["Best version so far = whichever code <br> passes the most tests. The pass-set only ever grows."]
+    why["Without this check, fixing one test often <br> breaks another and progress is illusory."]:::note
+
+    code --> set
+    set --> edit
+    edit --> rerun
+    rerun --> check
+    check -- yes --> revert
+    check -- "no, and the new test now passes" --> accept
+    revert -- try again --> edit
+    accept --> grow
+    grow -- iterate --> edit
+    why ~~~ check
+</pre>
+    </div>
+  </article></section><!-- ============================================================
+     PATTERN 2: Separation of Creativity and Critique
+     ============================================================ -->
+<section class="pattern-section p2" id="p-asymmetric-roles">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 2</div>
+    <h2>Separation of Creativity and Critique</h2>
+    <p class="tagline">Re-role a single API model into solver / critic / value function / test author / curriculum by varying only the system prompt and the few-shot block. No second model, no fine-tuning.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Getting "two heads" without two models. A solver and an independent critic give complementary signal even when they share weights, the system prompt sets the cognitive frame, and process-graded few-shots can train the critic to grade process not outcome.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>Frozen-API settings where you can't fine-tune a separate verifier. Cases where role independence (an honest second opinion, a process scorer, a test author, a curriculum proposer) matters more than role specialization. Especially powerful when one role decomposes into independent checks that scale monotonically with budget.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>When the verifier needs domain knowledge the solver doesn't have, then you need a separately-trained model, not a re-prompt. When the model's mistakes are so model-architectural (a knowledge cutoff, a tokenization quirk) that re-prompting can't escape them. When you have a real deterministic verifier and don't need LLM-as-critic at all.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    llm["One frozen language model <br> (same weights, same API, no fine-tuning)"]:::muted
+    callA["Call it once with system prompt A: <br> 'You are a solver, find an answer' <br> + solver-style examples"]:::accent
+    callB["Call it again with system prompt B: <br> 'You are a critic, grade the work' <br> + critic-style examples"]:::accent
+    outA["Solver output: <br> a candidate answer"]:::accent
+    outB["Critic / scorer / test-author output: <br> a complementary judgement"]:::accent
+    key["The two 'heads' share weights. <br> What makes them different is only the <br> system prompt and the few-shot examples."]:::note
+
+    llm --> callA
+    llm --> callB
+    callA --> outA
+    callB --> outB
+    key ~~~ callA
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P2: LATS -->
+  <article class="instance-card h-lats" id="i-roles-lats">
+    <h4><span class="harness-name">LATS</span>: value-function prompt parsed back into a scalar</h4>
+    <div class="harness-mini">
+      HotPotQA · HumanEval/MBPP · WebShop<span class="sep">·</span>
+      MCTS over LLM trajectories<span class="sep">·</span>
+      GPT-4 (frozen API)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Wrap the same frozen model behind a value prompt: "Given this trajectory, rate correctness
+      1-10. Thus the score is __." Parse the completion by substring scanning "10" first, then "9",
+      down to "1"; map to <code>[0.1, 1.0]</code>. The crucial detail: the few-shot block mixes
+      incomplete-but-on-track trajectories scored 10 with wrong-direction trajectories scored 3-4,
+      training the same model to grade <em>process</em> rather than whether the final answer is yet
+      present. Cached per problem so revisited nodes don't re-query.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      MCTS needs node values, but training a value head requires data, trajectories, and a model
+      you own, none of which exist on top of a frozen API. Without value scoring, tree search
+      collapses into random rollouts. The prompted value function trades a small token cost for a
+      portable scorer that can be reframed (process vs. outcome) by editing the few-shot.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    traj["A partial solution that hasn't reached <br> a final answer yet (a search-tree node)"]:::muted
+    prompt["Wrap it in a value prompt with hand-picked examples: <br> 'incomplete-but-on-track trajectories scored 10, <br> wrong-direction trajectories scored 3-4'"]:::accent
+    same["The same frozen language model <br> (no separate value head, no fine-tuning)"]:::muted
+    out["Model writes: '…the correctness score is 8'"]
+    parse["Scan the output for the first digit: <br> 10 first, then 9, down to 1. <br> Map that to a number between 0.1 and 1.0."]:::accent
+    why["The few-shot teaches the same model to grade <br> the process (is this on the right track?) <br> rather than the outcome (does it contain the <br> final answer yet?)"]:::note
+
+    traj --> prompt
+    prompt --> same
+    same --> out
+    out --> parse
+    why ~~~ prompt
+</pre>
+    </div>
+  </article>  <!-- P2: deepsearch-tts -->
+  <article class="instance-card h-deepsearch" id="i-roles-deepsearch">
+    <h4><span class="harness-name">deepsearch-tts</span>: solver and verifier, same loop, different system prompts</h4>
+    <div class="harness-mini">
+      BrowseComp / GAIA / xBench web-grounded QA<span class="sep">·</span>
+      test-time-scaling gains across multiple open-weights models<span class="sep">·</span>
+      Qwen / DeepSeek-R1 / Kimi
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      One generic agent-loop implementation, parameterized on <code>system_prompt</code>,
+      <code>messages</code>, and a tool set. Instantiate it twice: once with a solver prompt
+      (exploratory, breadth-first, "find the answer"), once with a verifier prompt (narrow,
+      condition-by-condition, "check each claim against evidence"). Same tools, optionally the same
+      model. The asymmetry is entirely in the prompt, and empirically the verifier reaps almost
+      all the test-time-scaling benefit, because its work decomposes into independent per-condition
+      checks.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Web QA can't trust the solver alone, it will confidently quote stale pages and hallucinate
+      dates. But more budget makes the solver <em>worse</em> past a certain point: over-exploration,
+      contradiction, drift. A separately-trained verifier model would double the surface area for
+      bugs. Prompt-only re-roling gives the asymmetric solver/verifier split with no new code path.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    impl["One generic agent loop, parameterized on: <br> system prompt · message history · tool set"]:::muted
+    inst1["Instance #1, solver prompt: <br> 'be exploratory, find the answer'"]:::accent
+    inst2["Instance #2, verifier prompt: <br> 'check each claim against the evidence, <br> one condition at a time'"]:::accent
+    tools["Both instances use the same tools <br> (web search, page fetch, …), possibly even the same model"]
+    budget["When the budget grows, the verifier reaps almost <br> all the benefit. The solver plateaus or regresses."]:::accent
+    why["The verifier's work decomposes into independent <br> per-condition checks, which scale cleanly with budget. <br> The solver tends to over-explore and contradict itself."]:::note
+
+    impl --> inst1
+    impl --> inst2
+    inst1 --> tools
+    inst2 --> tools
+    tools --> budget
+    why ~~~ budget
+</pre>
+    </div>
+  </article>  <!-- P2: AlphaCodium -->
+  <article class="instance-card h-alpha" id="i-roles-alpha">
+    <h4><span class="harness-name">AlphaCodium</span>: LLM as test-case author against its own code</h4>
+    <div class="harness-mini">
+      CodeContests competitive programming<span class="sep">·</span>
+      beat prior published results on CodeContests<span class="sep">·</span>
+      GPT-4 (frozen)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      A dedicated "test-author" prompt asks the model to fabricate 6 additional input/output pairs,
+      sorted easy-to-hard, explicitly including a "large input" case, that go beyond the 1-3
+      public tests shipped with the problem. The fabricated tests become a second verifier tier
+      behind the public ones: cheap crash-gate first, generated tests second. The same model
+      generates the code <em>and</em> writes the tests it has to pass, in separate calls with
+      separate prompts.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      CodeContests has weak baseline test suites and lots of distractor solutions that pass the 1-3
+      visible cases but fail hidden grading. The model is much better at <em>generating</em> hard
+      input cases than at solving the whole problem end-to-end; this prompt-role split exploits that
+      asymmetry, generation budget moves to the verifier.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    llm["The same frozen language model"]:::muted
+    rg["Role: code generator <br> 'Write a solution to the programming problem.'"]:::accent
+    rt["Role: test author <br> 'Invent 6 harder input/output pairs <br> for this problem, including a large-input case.'"]:::accent
+    code["Candidate code (the solution to evaluate)"]
+    tests["Fabricated tests (a second tier of checks)"]
+    cascade["Verification order: first run the public tests <br> shipped with the problem (a cheap crash-gate). <br> For survivors, run the fabricated tests."]:::accent
+    why["The model is much better at writing hard test inputs <br> than at solving the full problem end-to-end. <br> Different prompts let the same model exploit that asymmetry."]:::note
+
+    llm --> rg
+    llm --> rt
+    rg --> code
+    rt --> tests
+    code --> cascade
+    tests --> cascade
+    why ~~~ rt
+</pre>
+    </div>
+  </article>
+</section>
+
+
+<!-- ============================================================
+     PATTERN 3: Natural Language Reinforcement Learning
+     ============================================================ -->
+<section class="pattern-section p5" id="p-verbal-rl">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 3</div>
+    <h2>Natural Language Reinforcement Learning</h2>
+    <p class="tagline">The "gradient" between attempts is a natural-language reflection on what went wrong, fed back into the next attempt's prompt. No weight update, the same frozen model is its own in-context tutor.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Improving across attempts on a frozen model. Captures qualitative signal ("I forgot the empty-list case", "the page I read was out of date") that a scalar reward can't express. The model's own retrospective prose is in a format it natively parses.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>When failure is informative, the model can describe what went wrong in NL. When retries are cheap (you can afford many attempts per task). When the task has a clear pass/fail signal so the reflector has something concrete to react to.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>When failures are noisy or non-diagnostic (the model can't say what went wrong because it doesn't know, e.g. tasks where its error is silent). Single-shot tasks with no second attempt. Don't run unbounded, stale reflections describe an agent that no longer exists, and accuracy regresses; bound the reflection memory.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    trial_k["Trial k, the model writes a solution"]:::muted
+    eval["A deterministic checker says the solution failed"]
+    reflector["A self-reflector prompt: <br> 'Diagnose what went wrong here, <br> and propose a different strategy.'"]:::accent
+    paragraph["The model writes a short natural-language paragraph <br> in its own voice. For example: <br> 'I retrieved the right page but used outdated data; <br> next time check the most recent entry.'"]:::accent
+    next["Trial k+1, the same frozen model receives a prompt <br> that starts with the reflection paragraph, <br> then asks for a new attempt."]:::accent
+    why["The reflection is the 'gradient'. <br> No weight update, the model trains itself <br> in-context by reading its own post-mortem."]:::note
+
+    trial_k --> eval
+    eval -- on failure --> reflector
+    reflector --> paragraph
+    paragraph --> next
+    next -- loop --> trial_k
+    why ~~~ paragraph
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P6: Reflexion -->
+  <article class="instance-card h-reflex" id="i-vrl-reflex">
+    <h4><span class="harness-name">Reflexion</span>: Actor / Evaluator / Reflector with NL reflection as cross-attempt memory</h4>
+    <div class="harness-mini">
+      HumanEval / LeetCode · AlfWorld · HotPotQA · WebShop<span class="sep">·</span>
+      foundational paper for self-reflective agent loops<span class="sep">·</span>
+      GPT-4 / GPT-3.5 (frozen)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Three role-specialized prompts: Actor produces solutions; Evaluator decides pass/fail
+      deterministically where possible (Python sandbox, exact-match, env reward); Self-Reflector,
+      on failure, writes a short paragraph diagnosing what went wrong and proposing a different
+      approach. The reflection is then injected verbatim into the next Actor prompt. Reflexion is
+      the canonical instantiation of this pattern, almost every later harness with a reflection
+      mechanism descends from it.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Naive retry-on-failure is amnesiac: attempt <em>k</em>+1 has no signal that attempt <em>k</em>
+      happened, and the model re-discovers the same dead-ends. Scalar reward back-propagation
+      works for trained agents but not for a frozen black-box LLM. NL reflection is the simplest
+      workable substitute, it lets the same model "train itself" across trials with no weight
+      update at all.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    actor["Actor (prompt #1): <br> 'Produce a solution to the task.'"]:::muted
+    sol["Candidate solution"]
+    evaluator["Evaluator (prompt #2): <br> a deterministic check, sandbox run, <br> exact-match comparison, or environment reward."]:::accent
+    reflector["Self-Reflector (prompt #3): <br> 'Diagnose what failed and propose a different approach.'"]:::accent
+    paragraph["Natural-language reflection paragraph"]
+    next["Trial k+1, the Actor's prompt now starts <br> with that reflection paragraph"]:::accent
+    why["Three role-specialized prompts on the same model. <br> The reflection paragraph is the only signal carried <br> between trials, no scalar reward, no weight update."]:::note
+
+    actor --> sol
+    sol --> evaluator
+    evaluator -- on failure --> reflector
+    reflector --> paragraph
+    paragraph --> next
+    next -- loop --> actor
+    why ~~~ reflector
+</pre>
+    </div>
+  </article>  <!-- P5: LATS -->
+  <article class="instance-card h-lats" id="i-vrl-lats">
+    <h4><span class="harness-name">LATS</span>: extends verbal RL to a SECOND head (the value function)</h4>
+    <div class="harness-mini">
+      HotPotQA · HumanEval/MBPP · WebShop<span class="sep">·</span>
+      MCTS over LLM trajectories<span class="sep">·</span>
+      GPT-4 (frozen)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Reflexion's contribution was "NL reflection updates the actor." LATS's verbal-RL contribution
+      is that the same NL reflection ALSO updates the value head: it gets spliced into the
+      value-scoring prompt with the directive "this trajectory is incorrect as
+      <code>{reflection}</code>, thus correctness score is 1." So one NL update propagates to two
+      heads at once, sampling diverts away from the dead-end pattern, AND scoring grades similar
+      partial paths low. The gradient analog targets two policies, not one.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      In MCTS, a memoryless value function keeps scoring confidently-wrong subtrees highly forever,
+      fixing only the actor isn't enough, because the value function will steer rollouts right
+      back into the bad region. Updating both heads with the same NL signal closes the loop:
+      sampling AND scoring move together when the harness learns something. This is the structural
+      reason LATS works on long HotPotQA and WebShop trajectories where actor-only verbal RL stalls.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    fail["A failed search trajectory"]:::muted
+    reflect["Run a reflection prompt on the failure: <br> 'Why did this trajectory fail? <br> What should be different next time?'"]:::accent
+    paragraph["Natural-language reflection paragraph"]
+    pol_prompt["Spliced into the next actor prompt: <br> 'avoid the dead-end described in this reflection'"]:::accent
+    val_prompt["Also spliced into the next value prompt: <br> 'this trajectory is incorrect as {reflection}, <br> therefore correctness score is 1'"]:::accent
+    both["Two roles react to the same memory: <br> the one that picks next steps, <br> and the one that scores partial paths."]
+    why["Reflexion's contribution: one reflection updates the actor. <br> LATS extends it: one reflection updates both roles at once, <br> the one that picks next steps and the one that scores partial <br> paths, so sampling and scoring move together."]:::note
+
+    fail --> reflect
+    reflect --> paragraph
+    paragraph --> pol_prompt
+    paragraph --> val_prompt
+    pol_prompt --> both
+    val_prompt --> both
+    why ~~~ both
+</pre>
+    </div>
+  </article>  <!-- P5: Voyager -->
+  <article class="instance-card h-voyager" id="i-vrl-voyager">
+    <h4><span class="harness-name">Voyager</span>: Critic Agent's NL diagnosis as the policy-update payload</h4>
+    <div class="harness-mini">
+      open-ended Minecraft, no terminal state<span class="sep">·</span>
+      outperformed prior agents on novel-item discovery<span class="sep">·</span>
+      GPT-4 / GPT-3.5
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      When the Action Agent's JS code fails (env returns an error, the Critic Agent says
+      <code>success=False</code>), the Critic produces a natural-language diagnosis, e.g. "you
+      tried to craft an iron pickaxe but you don't have a furnace; smelt iron ore first." That
+      diagnosis is injected, verbatim, into the Action Agent's next code-generation prompt. The NL
+      paragraph is the gradient: it's what makes attempt <em>k</em>+1 different from attempt
+      <em>k</em>. Raw env errors come along as additional signal, but the Critic's reasoned prose
+      is what's structurally Reflexion-shaped, a reflective LLM producing the update payload that
+      drives the next attempt.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Minecraft is open-ended, no oracle, no terminal state, no "the answer is 42." The only
+      signal the agent gets is what the environment says after its code ran. Verbal RL on top of
+      that signal lets the same frozen model improve its code across attempts without any training
+      step: the Critic's NL diagnosis is what turns "compilation failed" into the actionable
+      next-attempt guidance the Action Agent's prompt can absorb.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    code["Action Agent writes JavaScript code <br> and runs it in Minecraft"]:::muted
+    fail["Code fails, either the environment returns an error, <br> or the Critic Agent reports success = False"]
+    env_err["Raw environment errors <br> (JS exceptions, missing items, …)"]:::accent
+    critic["Critic Agent, a natural-language diagnosis: <br> 'you tried to craft an iron pickaxe but you <br> have no furnace; smelt iron ore first'"]:::accent
+    next["Both signals are injected into the Action Agent's <br> next code-generation prompt"]:::accent
+    why["Minecraft has no oracle and no terminal state. <br> The Critic's prose is the gradient, it's what makes <br> attempt k+1 different from attempt k."]:::note
+
+    code --> fail
+    fail --> env_err
+    fail --> critic
+    env_err --> next
+    critic --> next
+    next -- loop --> code
+    why ~~~ critic
+</pre>
+    </div>
+  </article></section><!-- ============================================================
+     PATTERN 4: Tree Search: Far and Wide
+     ============================================================ -->
+<section class="pattern-section p3" id="p-tree-search">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 4</div>
+    <h2>Tree Search: Far and Wide</h2>
+    <p class="tagline">Search a tree of partial trajectories. At each step, score the partial state with a critic or verifier, then spend more compute on the promising branches and kill the dead ones. Two flavors of this move show up across harnesses: depth-first with explicit tree memory (Monte Carlo Tree Search), and breadth-first with population resampling (Sequential Monte Carlo).</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Tasks where the right answer is buried in a large but structured search space, and a flat ensemble wastes compute on rollouts that already wandered off in the first step. Tree search reallocates compute mid-flight: dead branches are killed before they reach a terminal answer the verifier would have rejected anyway, and the surviving branches inherit the freed budget.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>When you can score a <em>partial</em> state, not only a terminal one, via an LLM critic, a stepwise verifier, or a process-grade signal. When the task decomposes into a sequence of small decisions and an early bad choice is recoverable by re-exploring siblings. When you can afford to pause, score, and fork rollouts. Math proofs, multi-step code, multi-hop QA, web search, planning.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>When partial states are uninformative and the only signal arrives at the terminal answer. When a single call already solves the task cheaply, the tree bookkeeping costs more than it saves. When the API is stateless completions only and you can't pause and continue rollouts. When a flat ensemble with a verifier is already enough; use Pattern 1 instead.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    root["Start with one task. <br> Generate the first step several different ways."]:::muted
+    a["Branch A: <br> first-step candidate"]
+    b["Branch B: <br> first-step candidate"]
+    c["Branch C: <br> first-step candidate"]:::reject
+    score1["A critic scores each partial state. <br> Branch C is judged unpromising and pruned."]:::note
+    a1["Extend A: <br> next step"]
+    a2["Extend A: <br> sibling next step"]
+    b1["Extend B: <br> next step"]
+    score2["Score again. Keep extending the survivors; <br> spawn new siblings on the promising branches."]:::note
+    final["Pick the best terminal trajectory <br> from the survivors."]:::accent
+    why["The design knob is how to split compute between <br> 'go deeper on the best branch' and <br> 'try more siblings at the same depth'. <br> MCTS goes depth-first with explicit tree memory and value backprop. <br> Sequential Monte Carlo goes breadth-first with population resampling."]:::note
+
+    root --> a
+    root --> b
+    root --> c
+    a --> a1
+    a --> a2
+    b --> b1
+    a1 --> final
+    a2 --> final
+    b1 --> final
+    score1 ~~~ c
+    score2 ~~~ b1
+    why ~~~ final
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P4: rStar-Math -->
+  <article class="instance-card h-rstar" id="i-tree-rstar">
+    <h4><span class="harness-name">rStar-Math</span>: multi-seed independent MCTS trees with terminal-grounded Q-backprop</h4>
+    <div class="harness-mini">
+      grade-school to AIME competition math<span class="sep">·</span>
+      7B SLM matches o1 on competition math<span class="sep">·</span>
+      Claude / GPT / Gemini (training-free variant)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Run K independent MCTS trees with different random seeds. Within each tree, expand candidate next-steps and back-propagate Q values from terminal correctness, not from visit count or self-confidence. Scale rollouts adaptively for harder problems (8, 16, 64, 128). The first 32 candidates already diverge across trees, so by rollout 50 each tree is exploring a different subtree topology. Collect the best trajectory from each tree into one cross-tree pool, and pick the trajectory whose path has the highest mean Q.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      MCTS commits to a tree shape early: hard problems whose answer lives in a low-prior region may never get explored, no matter how deep one tree goes. Multi-seed trees buy <em>breadth</em>: different starting hypotheses that depth alone can't reach. Terminal-grounded Q-backprop keeps the scoring honest, an intermediate node's value is set by how often following it through reached a correct final answer, not by the model's opinion of its own answer.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    task["One math problem"]:::muted
+    s0["Search #1, random seed A. <br> Repeatedly extends partial solutions, <br> exploring one family of approaches."]:::accent
+    s1["Search #2, random seed B. <br> Explores a different family."]:::accent
+    sk["Search #K, random seed K. <br> Yet another family."]:::accent
+    why["Different seeds make the first few steps <br> diverge, so each search settles into a different <br> region. Buys breadth that one search alone can't."]:::note
+    pool["Collect the best solution found by each <br> search into one shared pool"]
+    pick["Pick the solution whose steps had the highest <br> average score. Each step's score = how often <br> following it through led to a correct final answer."]:::accent
+
+    task --> s0 & s1 & sk
+    why ~~~ s1
+    s0 & s1 & sk -- best solution from this search --> pool
+    pool --> pick
+</pre>
+    </div>
+  </article>  <!-- P4: LATS -->
+  <article class="instance-card h-lats" id="i-tree-lats">
+    <h4><span class="harness-name">LATS</span>: single tree, UCT-selected child expansion, prompted-value leaf scoring</h4>
+    <div class="harness-mini">
+      HotPotQA (multi-hop QA) · HumanEval/MBPP (code) · WebShop (interactive web)<span class="sep">·</span>
+      consistent gains across all three with one framework<span class="sep">·</span>
+      GPT-4 (frozen API, no training)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      One MCTS tree. At every internal node, sample <em>k</em> children from the same frozen policy at non-zero temperature, so siblings actually differ. Each child is scored with the prompted-value function, a second prompt to the same model asking for 1-10 on partial-trajectory correctness. UCT picks which child to expand next, combining the value score with an exploration bonus for under-visited branches. The chosen child becomes the new partial solution; recurse until a terminal trajectory is reached.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      With no value function, tree search degenerates into uniform random rollouts. With one value but no sibling branching, you have a chain not a tree. The cross-sibling aggregation lets the same model's noisy individual judgements average into a usable next-step signal, while UCT keeps the search from collapsing onto whichever child got lucky on its first score.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    parent["The partial solution so far"]:::muted
+    c1["Possible next step #1"]:::accent
+    c2["Possible next step #2"]:::accent
+    ck["Possible next step #k"]:::accent
+    score["The same model, given a different prompt, <br> scores how promising each next step looks (1-10)."]
+    why["The k next steps are sampled with the model <br> set to answer randomly (not always picking the <br> most likely word), so they actually differ."]:::note
+    pick["Pick which next step to explore further: <br> combine its score with a bonus for steps that <br> have been tried less often than their siblings."]:::accent
+    loop["The chosen next step becomes the <br> new partial solution. The cycle repeats <br> until a full solution is built."]:::note
+
+    parent --> c1 & c2 & ck
+    why ~~~ c2
+    c1 & c2 & ck --> score
+    score --> pick
+    pick -- becomes new partial solution --> parent
+    loop ~~~ parent
+</pre>
+    </div>
+  </article>  <!-- P4: Particle Filtering / SMC -->
+  <article class="instance-card h-smc" id="i-tree-smc">
+    <h4><span class="harness-name">Particle Filtering</span>: a population of partial rollouts, resampled at checkpoints</h4>
+    <div class="harness-mini">
+      math / reasoning / code<span class="sep">·</span>
+      sequential Monte Carlo applied to LLM inference<span class="sep">·</span>
+      any frozen LLM
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Launch N particles, each a partial rollout from the same starting prompt. At a checkpoint, every k reasoning steps, or after each tool call, pause all particles and score each partial state with a critic LLM or a process signal. Resample with replacement, weighted by the scores: low-scoring particles disappear, high-scoring particles get cloned into the empty slots. The clones diverge again because subsequent token sampling is stochastic. Repeat at the next checkpoint until particles terminate. Final answer is voted among the survivors or picked by score.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Flat best-of-N pays full compute for every rollout, including the ones that wandered off in the first step and never recovered. Particle filtering kills those rollouts and gives their budget to the survivors. The total compute is the same; the allocation happens mid-flight rather than being committed up front. Unlike MCTS, there is no tree memory, no Q-backprop, no UCT bookkeeping. Just a flat population reweighted at checkpoints. The simplest form of mid-flight reallocation.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    pop["The same task, <br> N parallel rollouts (particles)"]:::muted
+    gen1["Each particle generates one reasoning step"]
+    score1["Pause. A critic scores each partial state."]:::accent
+    resample["Resample with replacement, weighted by scores. <br> Low-scoring particles disappear; <br> high-scoring particles get cloned into the empty slots."]:::accent
+    gen2["Each surviving particle continues. <br> The clones diverge again because <br> the next tokens are sampled stochastically."]
+    repeat["Reach the next checkpoint, score again, resample again."]
+    done["When particles terminate, <br> vote among survivors or pick the highest-scoring."]:::accent
+    why["No tree memory, no backprop, no UCT bookkeeping. <br> Just N particles being reweighted at checkpoints. <br> The simplest mid-flight reallocation of compute."]:::note
+
+    pop --> gen1
+    gen1 --> score1
+    score1 --> resample
+    resample --> gen2
+    gen2 --> repeat
+    repeat -- loop --> score1
+    repeat --> done
+    why ~~~ resample
+</pre>
+    </div>
+  </article></section><!-- ============================================================
+     PATTERN 5: Multi-Agent Debate
+     ============================================================ -->
+<section class="pattern-section pdebate" id="p-multi-agent-debate">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 5</div>
+    <h2>Multi-Agent Debate</h2>
+    <p class="tagline">Run the same question through N independent LLM instances; show each one what the others said; have each revise; majority-vote the final round. Cross-conditioning surfaces errors a single agent locks into — but only if peers are framed as opinions, not authorities, and only if you cap rounds before they collapse.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Questions where a single strong agent <em>usually</em> gets the right answer but sometimes locks into a confident error that more sampling alone can't fix. Debate exposes inconsistencies between independently-sampled reasoning traces and gives the model a chance to update on its peers' chain-of-thought. Strongest gains on factuality (biographies 66→74), MCQ reasoning (MMLU 64→71), and arithmetic / GSM-style math (GSM8K 77→85), see Du et al., 2023.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>Verifiable-answer tasks where the right answer is the kind of thing N agents can converge on (math, MCQ, factuality QA, chess move validity). Enough compute headroom for N agents × R rounds (canonical is N=3, R=2 — so ~6× the call count of a single-pass baseline). When agents are roughly comparable in capability; a wildly stronger agent gets diluted by plain majority vote.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>Easy questions where a single agent already does well — debate sometimes <em>flips correct answers wrong</em> (iMAD's GSM8K result: vanilla MAD 76.4% vs. CoT 71.3%; the always-debate harness is below a smarter "should we debate?" gate). Open-ended generation with no answer to converge on. Tight latency budgets. Setups where the strongest agent is much stronger than the others.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    task["One question to answer"]:::muted
+    a1r0["Agent 1 (round 0): <br> independent answer + reasoning"]:::accent
+    a2r0["Agent 2 (round 0): <br> independent answer + reasoning"]:::accent
+    a3r0["Agent 3 (round 0): <br> independent answer + reasoning"]:::accent
+    a1r1["Agent 1 (round 1): <br> sees agents 2 &amp; 3's responses, <br> framed as opinions / advice. <br> Revises its own answer."]:::accent
+    a2r1["Agent 2 (round 1): sees 1 &amp; 3's, revises"]:::accent
+    a3r1["Agent 3 (round 1): sees 1 &amp; 2's, revises"]:::accent
+    vote["Extract the final answer from each agent's <br> last-round response (regex on \boxed{...}). <br> Plain majority vote. No judge LLM."]:::accent
+    rules["Critical framing rules: <br> • peers shown as 'opinions' or 'advice', NOT 'experts' <br> • include each peer's full chain-of-thought, not just the answer <br> • show ONLY the latest turn of each peer (not their full history) <br> • cap rounds at 2 or 3 — gains saturate, conformity grows"]:::note
+
+    task --> a1r0 & a2r0 & a3r0
+    a1r0 & a2r0 & a3r0 --> a1r1 & a2r1 & a3r1
+    a1r1 & a2r1 & a3r1 --> vote
+    rules ~~~ a2r1
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P5: Canonical MAD (Du et al.) -->
+  <article class="instance-card h-mad" id="i-mad-canonical">
+    <h4><span class="harness-name">MAD</span>: the canonical 3-agent / 2-round debate, identical prompt across all tasks</h4>
+    <div class="harness-mini">
+      GSM8K · MMLU · arithmetic · biographies · chess<span class="sep">·</span>
+      GSM8K 77→85, MMLU 64→71, arithmetic 67→82<span class="sep">·</span>
+      ChatGPT-3.5 (frozen, no fine-tuning)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      N=3 agents (default), R=2 rounds. Round 0: each agent independently answers (no cross-talk). Round 1: each agent is shown the round-0 responses of the <em>other two</em> agents, framed as "These are the recent/updated opinions from other agents... Use these opinions carefully as additional advice, can you provide an updated answer?" Each agent retains its own full history; peer responses are injected as a single user message at the top of the new turn. Final answer: regex on <code>\boxed{...}</code> across all 3 agents' round-1 responses, plurality vote. <strong>No judge LLM, no learned aggregator, no domain-specific prompts</strong> — the same template works across all five tasks the paper benchmarks.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Plain N-sample majority vote (self-consistency) is correlated: N independent calls to the same model on the same prompt produce N near-identical traces. Cross-conditioning during rounds 1+ <em>forces</em> trace divergence by having each agent argue against (or assimilate) the others' reasoning. On a cross-model trial of 20 GSM8K problems, ChatGPT alone solved 14, Bard alone solved 11, but ChatGPT+Bard joint debate solved 17 — the gain is meaningfully larger than either model's ceiling. Reasoning sharing (not just final answers) is what drives the gain; Du et al. directly ablate "show only the answer" and it underperforms "show the full chain-of-thought."
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    q["GSM8K problem: <br> 'James buys 5 packs of beef...'"]:::muted
+    a1["Agent 1: <br> CoT + \boxed{42}"]:::accent
+    a2["Agent 2: <br> CoT + \boxed{38}"]:::accent
+    a3["Agent 3: <br> CoT + \boxed{42}"]:::accent
+    round1prompt["Each agent's round-1 prompt: <br> 'These are the opinions from other agents: <br> [Agent X's full CoT and answer], <br> [Agent Y's full CoT and answer]. <br> Use these opinions carefully as additional advice. <br> Can you provide an updated answer?'"]:::note
+    a1r1["Agent 1 r1: \boxed{42}"]:::accent
+    a2r1["Agent 2 r1: \boxed{42}"]:::accent
+    a3r1["Agent 3 r1: \boxed{42}"]:::accent
+    vote["Counter(['42','42','42']) → 42"]:::accent
+
+    q --> a1 & a2 & a3
+    a1 & a2 & a3 -- peer responses injected --> round1prompt
+    round1prompt --> a1r1 & a2r1 & a3r1
+    a1r1 & a2r1 & a3r1 --> vote
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: <a href="https://arxiv.org/abs/2305.14325">Du et al., arXiv 2305.14325</a>; code at <a href="https://github.com/composable-models/llm_multiagent_debate">composable-models/llm_multiagent_debate</a>.</p>
+  </article>  <!-- P5: MAD-M² (memory masking) -->
+  <article class="instance-card h-madmm" id="i-mad-madmm">
+    <h4><span class="harness-name">MAD-M²</span>: insert a "mask out untrustworthy peers" step between rounds</h4>
+    <div class="harness-mini">
+      MATH · AIME24/25 · GSM8K<span class="sep">·</span>
+      MATH 71.2→80.2 (+9.0), AIME24/25 6.7→13.3 (+6.6)<span class="sep">·</span>
+      Qwen2.5-Math-7B-Instruct (frozen)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Same canonical MAD skeleton (N agents, R rounds, majority vote). The patch: before round r (for r≥1), each agent independently constructs a binary mask over its (N−1) peers' round-(r−1) responses, and drops the masked ones from the round-r debate prompt. Two strategies, one toggle:
+    </p>
+    <ul style="font-size:13.5px; margin: 6px 0 12px 16px;">
+      <li><strong>Subjective</strong>: prompt the agent itself to label each peer YES / NO / NOT_SURE. NOs (and optionally NOT_SUREs under "strict") are masked. One extra LLM call per peer per round.</li>
+      <li><strong>Objective</strong>: compute the agent's perplexity on each peer's response; mask high-perplexity (low-confidence-under-this-model) responses. No extra LLM call.</li>
+    </ul>
+    <span class="label">Problem it solved here</span>
+    <p>
+      Vanilla MAD has an unbounded error-propagation pathology: a wrong response in round r is in everyone's round-(r+1) context, where it can flip them, and so on. By round R, the population's reasoning is dominated by the loudest early error. The mask cuts the propagation graph — once a peer response is flagged as suspect, it stops infecting downstream rounds. Empirically, objective (perplexity) masking is the win on hard math with a strong base model (+9 points on MATH); subjective masking helps weaker models where the LLM's self-judgment is more reliable than its perplexity calibration. Note the wart: <em>"if the agent already knows which answer is wrong to mask, then it doesn't need debate"</em> — masking risks discarding genuinely useful dissent on questions where the cluster's collective signal is what's correct.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    subgraph r1 ["Round 1"]
+        a1["Agent 1: \boxed{42}"]:::accent
+        a2["Agent 2: \boxed{17}"]:::accent
+        a3["Agent 3: \boxed{42}"]:::accent
+    end
+    mask["Each agent r2-preprocess: <br> objective: compute perplexity(peer); mask if &gt; threshold <br> OR subjective: LLM-classify YES/NO; mask the NOs <br> (here, agent 2's outlier r1 response gets masked by 1 &amp; 3)"]:::note
+    subgraph r2 ["Round 2 (with mask applied)"]
+        a1r2["Agent 1 sees: only agent 3 (agent 2 masked)"]:::accent
+        a2r2["Agent 2 sees: agents 1 &amp; 3"]:::accent
+        a3r2["Agent 3 sees: only agent 1 (agent 2 masked)"]:::accent
+    end
+    vote["Majority vote on r2 final answers"]:::accent
+
+    r1 --> mask
+    mask --> r2
+    r2 --> vote
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: <a href="https://arxiv.org/abs/2603.20215">Tian et al., arXiv 2603.20215 (ICLR 2026)</a>; analysed in the <a href="#i-mad-madmm">MAD-MM note</a>.</p>
+  </article>  <!-- P5: iMAD -->
+  <article class="instance-card h-imad" id="i-mad-imad">
+    <h4><span class="harness-name">iMAD</span>: a cheap gate that decides whether to debate at all</h4>
+    <div class="harness-mini">
+      MEDQA · MMLU · GSM8K · OKVQA · VQA-v2 · ScienceQA<span class="sep">·</span>
+      GSM8K 71.3 (CoT) → 84.8 (iMAD) vs 76.4 (always-debate MAD); ~25–35% of MAD's tokens<span class="sep">·</span>
+      Various base LLMs (frozen); gate-MLP trained once on PubMedQA+GQA
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Three-stage pipeline. <strong>(1) Self-critique</strong> — one LLM call elicits the model's answer + a deliberate counterargument + confidences for both sides. <strong>(2) Cheap feature gate</strong> — extract 41 hand-crafted features (3 surface + 6 readability + 3 syntactic + 9 POS + 20 uncertainty lexical cues like "might", "however", "perhaps") and pass through a 6-layer MLP (no second LLM!) trained on out-of-distribution PubMedQA+GQA data with a FocusCal loss (asymmetric focal + confidence-penalty + ECE calibration term). <strong>(3) Debate only on low-confidence questions</strong> — if MLP <code>p_correct &lt; 0.7</code>, run a 3-role (Affirmative / Negative / Judge) MAD with up to 5 rounds and an early-exit when the Judge emits <code>Preference: Yes</code> in JSON; otherwise return the self-critique's answer immediately.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Vanilla MAD has two failure modes iMAD targets at once. <strong>Wasted tokens</strong>: most questions don't need debate; an N=3, R=5 debate is 15× the call count of a single-pass baseline, and on ~66% of MEDQA questions the gate skips debate with no loss. <strong>Actively harmful debate</strong>: on GSM8K, vanilla MAD scored <em>worse</em> than single-pass CoT (76.4 vs 71.3) because the cross-conditioning flipped correct answers wrong on easy problems — the gate fixes this by not debating those at all (iMAD 84.8 vs MAD 76.4). The gate's net-benefit accounting (8-outcome confusion table on MEDQA) shows ~96% of decisions are net-beneficial: 5% false negatives (skipped a beneficial debate) and 1% false positives (debated and ruined a correct answer). The 41-feature MLP is essentially free at inference; the bet is that <em>hesitation lexical cues</em> in the model's own critique generalize across domains better than per-dataset confidence-threshold tuning.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    q["Question"]:::muted
+    sc["LLM call 1: self-critique <br> {answer, CoT, counterargument, conf_for, conf_against}"]:::accent
+    feats["Extract 41 features <br> (uncertainty lexical cues, POS, readability, ...)"]
+    mlp{"6-layer MLP, two heads (correctness + hesitation). <br> p_correct &lt; 0.7?"}
+    skip["Return self-critique's answer. <br> Total cost: 1 LLM call."]:::accent
+    debate["Run 3-role MAD: Affirmative / Negative / Judge. <br> Up to 5 rounds. <br> Judge emits JSON each round; early-exit on 'Preference: Yes'."]:::accent
+    vote["Final answer = Judge's DebateAnswer"]:::accent
+
+    q --> sc
+    sc --> feats
+    feats --> mlp
+    mlp -- p ≥ 0.7 (skip) --> skip
+    mlp -- p &lt; 0.7 (debate) --> debate
+    debate --> vote
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: <a href="https://arxiv.org/abs/2511.11306">arXiv 2511.11306</a>.</p>
+  </article></section><!-- ============================================================
+     PATTERN 6: Per-Problem Routing
+     ============================================================ -->
+<section class="pattern-section p6" id="p-per-problem-routing">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 6</div>
+    <h2>Per-Problem Routing</h2>
+    <p class="tagline">Run a cheap classifier on the problem before the LLM sees it; dispatch each problem to its own sub-harness tailored to that category. The router doesn't need to be smart — it needs to be cheap, stable, and well-correlated with how the right harness for this problem differs from the wrong one.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Heterogeneous problem distributions where the optimal recipe (retrieval, prompt, strategy, tool stack) varies meaningfully across problem categories. A single one-size-fits-all harness gets averaged into mediocrity; per-category recipes let each sub-distribution see a tuned operating point. Especially useful when category is more legible from surface features (keywords, syntax, schema) than from the LLM's own embedding.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>Tasks where (a) the problem distribution decomposes into a small number of qualitatively distinct sub-distributions (mathematical sub-fields, query intents, programming-task families) and (b) the right harness for each differs in concrete knobs you can tune separately — retrieval recipe, prompt template, tool menu, sampling budget. Especially powerful when category is observable up front rather than only knowable after solving.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>Homogeneous problem distributions where a single harness already serves everything well. When the category boundary is fuzzy and the router will mis-classify often — you'll degrade more than you gain. When training a router would cost more engineering than the gain justifies; for one-off prototypes, picking the best fixed harness and shipping is the right answer.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    task["One problem to solve"]:::muted
+    router["Cheap router: lexical rules, small classifier, <br> or learned distribution over strategies. <br> NEVER the same LLM that will solve."]:::accent
+    cat1["Sub-harness for category A: <br> tuned retrieval / prompt / tools / budget"]:::accent
+    cat2["Sub-harness for category B: <br> different recipe"]:::accent
+    cat3["Sub-harness for category C"]:::accent
+    fall["Catch-all default sub-harness <br> (absorbs ambiguous routes)"]:::accent
+    solve["The same base LLM <br> sees only the prompt the chosen sub-harness built"]
+    why["Key idea: specialise UPSTREAM of the LLM call. <br> One model, many context-construction code paths."]:::note
+
+    task --> router
+    router -- "category A" --> cat1
+    router -- "category B" --> cat2
+    router -- "category C" --> cat3
+    router -- "uncertain / other" --> fall
+    cat1 & cat2 & cat3 & fall --> solve
+    why ~~~ router
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P6: Meta-Harness -->
+  <article class="instance-card h-meta" id="i-routing-meta">
+    <h4><span class="harness-name">Meta-Harness</span>: lexical rules dispatch into four mathematical categories, each with its own retrieval recipe</h4>
+    <div class="harness-mini">
+      IMO-level math (200 problems)<span class="sep">·</span>
+      +4.7 pt over no-retriever, +1.3 pt over BM25, averaged across 5 held-out models<span class="sep">·</span>
+      Five base LLMs (frozen API): GPT-5.4-nano/mini, Gemini-3-Flash/3.1FL, GPT-OSS-20B
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Lightweight lexical predicates (keyword sets + a small number of regex features for geometry notation) dispatch each problem into one of four routes — combinatorics, geometry, number theory, or algebra/default. <strong>Each route is a different retrieval pipeline over the same BM25 corpus, not a different prompt:</strong> combinatorics fetches 20 BM25 candidates, dedups to 8, reranks by lexical + difficulty, returns top 3; geometry returns 1 curated NuminaMath reference plus 2 raw BM25 neighbors (no rerank); number theory adds an "names the technique early" rerank bonus; algebra uses an adaptive example count from the top-score distribution. The base LLM never knows which route it's on — it just sees a different distribution of few-shot examples.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      A single retrieval recipe gets averaged into mediocrity across mathematical sub-distributions. Geometry benefits from curated hard references; combinatorics benefits from aggressive dedup; number theory benefits from a technique-identification bonus that would be noise on a quadratic. The harness that's optimal for geometry actively hurts combinatorics. Routing lets each sub-harness sit at its own Pareto-optimal retrieval configuration without contaminating the others. Notably, the four-category taxonomy was <em>discovered</em> by the outer-loop search (Pattern 7), not hand-specified — the proposer converged on it from prior runs.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    p["IMO-level problem"]:::muted
+    route{"matches_geometry()? <br> matches_combinatorics()? <br> matches_number_theory()?"}:::accent
+    geo["Geometry: 1 hard NuminaMath ref + 2 BM25 (no rerank)"]:::accent
+    combo["Combinatorics: BM25 top-20 → dedup to 8 → rerank → top 3"]:::accent
+    nt["Number theory: BM25 top-12 → rerank with early-technique bonus → top 3"]:::accent
+    alg["Algebra / default: BM25 top-10 → adaptive example count"]:::accent
+    prompt["Build shared few-shot prompt (same template across routes)"]
+    lm["Single LLM call. No verifier, no voting."]:::accent
+
+    p --> route
+    route -- "\\triangle, \\angle, ..." --> geo
+    route -- "'how many ways', 'permutations', ..." --> combo
+    route -- "'divides', 'prime', 'mod', ..." --> nt
+    route -- "default" --> alg
+    geo & combo & nt & alg --> prompt
+    prompt --> lm
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: Lee et al., <a href="https://arxiv.org/abs/2603.28052">arXiv 2603.28052</a>.</p>
+  </article>  <!-- P6: PRISM -->
+  <article class="instance-card h-prism" id="i-routing-prism">
+    <h4><span class="harness-name">PRISM</span>: a small router LM predicts a soft distribution over four reasoning strategies; compute scales with the router's confidence</h4>
+    <div class="harness-mini">
+      MATH500 · GSM8K · AQUA-RAT · SVAMP · ASDiv<span class="sep">·</span>
+      +8.8 avg Pass@1 over best single baseline on Qwen2.5-Math-7B (61.0→70.7); +7.6% on Llama-3-8B<span class="sep">·</span>
+      Base solver LLMs frozen; only a ~1.5B router is trained on a ~13K-instance MathStrat corpus
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      A small Strategy Adapter (SA, ~1.5B parameters) reads the problem text and emits a softmax distribution <code>p ∈ R⁴</code> over four reasoning strategies: <strong>NLR</strong> (plain CoT), <strong>CAR</strong> (Program-of-Thoughts / PAL), <strong>TIR</strong> (tool-integrated reasoning, calculator + symbolic solver loops), and <strong>EBR</strong> (self-consistency ensemble). The harness then uses two thresholds (<code>τ_c=0.4</code>, <code>τ_a=0.08</code>) to pick one of three execution modes:
+    </p>
+    <ul style="font-size:13.5px; margin: 6px 0 12px 16px;">
+      <li><strong>Confident</strong> (<code>p_max ≥ τ_c</code> AND margin <code>≥ τ_a</code>): run only the argmax strategy.</li>
+      <li><strong>Deliberative</strong> (<code>p_max ≥ τ_c</code> AND margin <code>&lt; τ_a</code>): run top-2 strategies; majority vote.</li>
+      <li><strong>Exploratory</strong> (<code>p_max &lt; τ_c</code>): run all four strategies; majority vote with router-confidence tiebreak.</li>
+    </ul>
+    <p>
+      The router is trained with KL divergence to soft targets built from a 3-dim score per (problem, strategy): correctness, automated process quality, and per-problem-min-max-normalized efficiency (latency + length). Solver LLMs are frozen; only the router is trained, so PRISM bolts onto any pretrained solver without fine-tuning it.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Mathematical reasoning strategies are <em>not</em> uniformly best: PAL crushes ASDiv (86.3) but tanks on AQUA-RAT (18.1); ToRA wins AQUA-RAT (47.2) but loses MATH (41.4 < PRISM's 46.2). Fixed-strategy harnesses pay the worst-strategy tax on the off-distribution problems. PRISM's per-problem dispatch + confidence-graded compute spend lets each sub-distribution see its strongest solver, and the three-tier mode gating means easy problems consume one strategy while hard ones get the full quartet. The router learns to <em>scale compute with difficulty</em>: on MATH500 most problems route to Exploratory (low <code>p_max</code>); on ASDiv/SVAMP most route to Confident.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    p["Math problem text"]:::muted
+    sa["Strategy Adapter (~1.5B): <br> softmax over (NLR, CAR, TIR, EBR)"]:::accent
+    gate{"p_max ≥ τ_c=0.4? <br> margin (p_max - p_2nd) ≥ τ_a=0.08?"}:::accent
+    conf["Confident: run argmax strategy only"]:::accent
+    delib["Deliberative: run top-2, majority vote"]:::accent
+    explor["Exploratory: run ALL four, majority vote, <br> tiebreak by router confidence"]:::accent
+    ans["Final answer"]
+
+    p --> sa
+    sa --> gate
+    gate -- "high p_max + wide margin" --> conf
+    gate -- "high p_max + narrow margin" --> delib
+    gate -- "low p_max" --> explor
+    conf & delib & explor --> ans
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: Qi et al., <a href="https://arxiv.org/abs/2509.24377">arXiv 2509.24377</a>. Code at <a href="https://github.com/reml-group/PRISM">github.com/reml-group/PRISM</a>.</p>
+  </article></section><!-- ============================================================
+     PATTERN 7: Harness as Search Variable
+     ============================================================ -->
+<section class="pattern-section p7" id="p-harness-search">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 7</div>
+    <h2>Harness as Search Variable</h2>
+    <p class="tagline">Don't design the harness; <em>search</em> it. An outer loop treats the harness's source code as the optimization target and uses an LLM proposer to propose new variants, scored on a held-out set. The base LLM is frozen; the scaffolding is what evolves. The result is a harness no human would have written by hand.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Squeezing additional performance out of a frozen base LLM by optimizing the <em>code surrounding the model call</em> — retrieval recipes, prompt templates, refinement loops, voting strategies, tool stacks. Most of the variance in end-task quality lives in the harness, not the model weights; harness search converts engineer-hours-spent-tuning into compute-hours-spent-proposing-and-scoring. Especially powerful when the proposer is itself a strong coding agent.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>Mature benchmark with a stable evaluator, where the inner-loop harness is cheap to evaluate (so the outer loop can score many candidates) and where the search space has enough structural variation to reward exploration (different retrieval depths, different prompt template families, different aggregation rules). Frozen base model is a feature, not a bug — it makes the search target the harness, not the model.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>One-shot deployments where you don't need a Pareto frontier — pick a reasonable harness and ship. Benchmarks where the search-set/test-set firewall would leak (because the proposer reads scores). Tasks without a clean numeric evaluator (open-ended generation) — the search loop needs a fitness signal. Setups where the base model is itself in flux; you'd be searching against a moving target.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    seed["Seed harnesses: a few hand-written starting points"]:::muted
+    fs["Filesystem D: <br> stores every prior candidate's code, scores, and traces. <br> NOT lossy summaries — full source."]
+    proposer["LLM proposer (a coding agent): <br> reads ~80 prior files from D, <br> emits a new candidate harness."]:::accent
+    valid{"Interface validation: <br> does the candidate expose <br> the expected entry point?"}
+    eval["Evaluate candidate against the SEARCH set <br> using a FROZEN base LLM"]:::accent
+    pareto["After N iterations: <br> return the Pareto frontier."]:::accent
+    fire["Critical firewall: <br> TEST set is never shown to the proposer. <br> Only search-set scores enter D."]:::note
+
+    seed --> fs
+    fs --> proposer
+    proposer --> valid
+    valid -- pass --> eval
+    valid -- fail --> proposer
+    eval --> fs
+    fs -. "N iterations" .-> pareto
+    fire ~~~ fs
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P7: Meta-Harness -->
+  <article class="instance-card h-meta" id="i-search-meta">
+    <h4><span class="harness-name">Meta-Harness</span>: Claude Code as proposer, filesystem of full prior source as memory, 40 iterations on IMO-level math</h4>
+    <div class="harness-mini">
+      IMO-level math (200 problems)<span class="sep">·</span>
+      +4.7 avg over no-retriever across 5 held-out models<span class="sep">·</span>
+      Proposer: Claude Code (Opus-4.6). Inner-loop search-time base LLM: GPT-OSS-20B (frozen). 40 outer-loop iterations, 109 candidate harnesses
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      The outer loop treats the harness's Python source as the search variable. Each iteration, the proposer (an LLM coding agent, Claude Code on Opus-4.6) reads a filesystem of prior candidate harnesses — a <strong>median of 82 files per iteration</strong>, containing full source, search-set scores, and execution traces — and proposes new candidates. New candidates that pass interface validation are evaluated against the search set with the frozen inner-loop base model (GPT-OSS-20B). After 40 iterations and 109 candidates, the harness returned is on the Pareto frontier. Critically, the test set is <strong>never</strong> shown to the proposer — only search-set scores enter the filesystem. The discovered harness (the routing + retrieval recipe documented in Pattern 6) is then evaluated on 5 held-out base models for the final numbers.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Human harness design has a small effective search space because each iteration costs engineer-hours. An LLM proposer that can read 82 files of prior code and emit a syntactically-valid variant in a few minutes can explore variants a human would never write — weird dedup strategies, asymmetric route topologies, adaptive example counts based on the score distribution. The crucial design choice is the <em>high-bandwidth feedback channel</em>: prior optimizers (OPRO, GEPA, TextGrad, AlphaEvolve, OpenEvolve) hand the proposer lossy summaries — scores, recent solutions, textual gradients — which discards the long-range dependencies needed to assign credit across harness interventions. Meta-Harness gives the proposer raw source and raw traces, and lets it <code>grep</code> / <code>cat</code> its own history.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    seeds["Seed harnesses (a few hand-written)"]:::muted
+    D[("Filesystem D: <br> every prior candidate's <br> code + scores + traces")]:::accent
+    cc["Claude Code (Opus-4.6) proposer: <br> reads ~82 files from D per iteration <br> via grep, cat, ls"]:::accent
+    cand["k new candidate harnesses"]
+    val{"Interface validation"}
+    sa["Evaluate against SEARCH set <br> (frozen GPT-OSS-20B inner loop)"]
+    par["After 40 iterations / 109 candidates: <br> Pareto frontier returned"]:::accent
+    hot["Discovered harness then evaluated on <br> 5 HELD-OUT base models: <br> +4.7 vs no-retriever"]:::note
+
+    seeds --> D
+    D --> cc
+    cc --> cand
+    cand --> val
+    val -- pass --> sa
+    val -- fail --> cc
+    sa --> D
+    D -. "40 iterations" .-> par
+    par --> hot
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: Lee et al., <a href="https://arxiv.org/abs/2603.28052">arXiv 2603.28052</a>.</p>
+  </article>  <!-- P7: Poetiq Meta-System (recursive self-improvement) -->
+  <article class="instance-card h-poetiqrsi" id="i-search-poetiqrsi">
+    <h4><span class="harness-name">Poetiq Meta-System</span>: recursive harness construction across benchmarks, optimised once and transferred to any base LLM</h4>
+    <div class="harness-mini">
+      LiveCodeBench Pro (Q2 2025)<span class="sep">·</span>
+      Gemini 3.1 Pro: 78.6 → 90.9 (+12.3); GPT-5.5: → 93.9; Gemini 3.0 Flash: 72.3 → 82.3 (+10.0); Kimi K2.6: 50.0 → 79.9 (+29.9)<span class="sep">·</span>
+      Optimisation done on Gemini 3.1 Pro; transferred to every other model without re-tuning
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      The Meta-System "constructs and optimizes task-specific harnesses automatically" — given a new benchmark, it lets the system build the harness from scratch rather than handing it a template. It carries learnings across benchmarks (the system's prior runs on ARC-AGI and HLE inform the LiveCodeBench Pro harness it discovers). Crucially, the harness optimisation is done on <em>one</em> base model (Gemini 3.1 Pro) but the resulting harness transfers to every other LLM the team tried without modification — same routing, prompts, refinement strategies, and assembly logic. The blog post emphasises the system "optimized every part of the harness", including "strategies for determining what to ask, refining sequential chain-of-questions, and devising fundamental new methods for assembling the answers." Standard API access only — no fine-tuning, no privileged activation access.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      LiveCodeBench Pro is continuously refreshed to avoid data contamination, which means a harness has to be robust to novel problem distributions rather than memorising tricks. Manual harness design for a moving benchmark is brittle and slow. Letting the Meta-System rebuild the harness from prior-benchmark experience converts harness engineering from "human iteration" to "system iteration." The transfer result — the same harness used by four very different LLMs all gains 10–30 points — is strong evidence that <em>the harness, not the model</em>, is doing most of the work on this benchmark. The system is not open-sourced; this is reported as a commercial early-access product, but the meta-pattern (harness-as-search-variable) is the same as Meta-Harness's, validated independently on a coding benchmark with different proposers and a different evaluation surface.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    prior["Prior benchmark experience: <br> ARC-AGI, HLE, ... <br> stored as learnings, not raw code"]:::muted
+    new["New benchmark: LiveCodeBench Pro"]:::accent
+    build["Meta-System constructs a task-specific harness from scratch"]:::accent
+    opt["Optimises every part: <br> question framing, sequential chain refinement, answer assembly"]:::accent
+    eval["Evaluate on Gemini 3.1 Pro <br> (the optimisation-time base LLM)"]
+    out["Discovered harness: 78.6 → 90.9"]:::accent
+    transfer["Transfer to GPT-5.5, Gemini 3.0 Flash, Kimi K2.6 <br> WITHOUT modification. <br> Each model gains 10–30 points."]:::accent
+
+    prior --> build
+    new --> build
+    build --> opt
+    opt --> eval
+    eval --> out
+    out --> transfer
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: Poetiq, <a href="https://poetiq.ai/posts/recursive_self_improvement_coding/">"Recursive Self-Improvement Delivers New State-of-the-Art Coding Performance"</a> (blog post, system not open-sourced). Separate from the Poetiq ARC-AGI solver.</p>
+  </article></section><!-- ============================================================
+     PATTERN 8: Decompose-and-Recurse
+     ============================================================ -->
+<section class="pattern-section p8" id="p-recursive-decomposition">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 8</div>
+    <h2>Decompose-and-Recurse: The Harness Calls Itself</h2>
+    <p class="tagline">When the input is too long or the task is too open-ended for one call, the harness lets the model spawn smaller LLM calls on chunks, sub-questions, or sub-tasks, then aggregates their results back at the root. The same model is its own subroutine, and the decomposition is discovered at inference time by the model rather than pre-specified by the engineer.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Inputs that exceed the context window (long documents, full codebases, dense corpora), and open-ended tasks that don't fit a fixed pipeline (research, multi-faceted questions, agentic coding). The harness scales beyond the model's native context by letting the model decide what to look at next instead of compressing everything in advance.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>When the input has structure the model can navigate at a coarse level (table of contents, file tree, list of sources), so the model can pick what to read or delegate. When the task naturally decomposes into independent or near-independent sub-problems. When you'd rather pay for many small focused calls than truncate or summarize a single huge one.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>When the input is genuinely entangled and any chunk loses critical cross-references (a proof where every line depends on the prior). When the cost of orchestration (extra round trips, summarization losses, child-context spin-up) exceeds the cost of just paying for a larger native context. When a fixed pipeline already captures the decomposition cleanly, use that instead.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    root["Root call sees a big input <br> or a complex open-ended task"]:::muted
+    nav["Model navigates structure: <br> table of contents, file tree, sub-questions"]
+    decide{"Decide which chunks or sub-tasks <br> need their own focused call"}:::accent
+    sub1["Sub-call 1: <br> focused on chunk A"]
+    sub2["Sub-call 2: <br> focused on chunk B"]
+    subN["Sub-call N: <br> focused on chunk ..."]
+    leaf["Each sub-call may itself recurse <br> if its chunk is still too big or too open"]:::note
+    agg["Root receives summaries from each sub-call. <br> The big input never enters root context."]:::accent
+    why["Key knob: the model picks the decomposition at inference time, <br> not the engineer at design time. <br> Depth and breadth of the tree are adaptive."]:::note
+
+    root --> nav
+    nav --> decide
+    decide --> sub1 & sub2 & subN
+    sub1 --> agg
+    sub2 --> agg
+    subN --> agg
+    leaf ~~~ sub2
+    why ~~~ decide
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P8: Recursive Language Models -->
+  <article class="instance-card h-rlm" id="i-recurse-rlm">
+    <h4><span class="harness-name">Recursive Language Models</span>: long input as a Python variable, model calls itself on chunks</h4>
+    <div class="harness-mini">
+      open-ended long-context QA, agent benchmarks up to 10M tokens<span class="sep">·</span>
+      outperforms GPT-5 by 26% vs. compaction, 130% vs. CodeAct sub-calls, 13% vs. Claude Code<span class="sep">·</span>
+      GPT-5, Claude, post-trained Qwen3-8B
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      The long prompt is dropped into a Python variable inside a REPL the model controls. The root model writes Python to peek at the head, tail, length, or a regex match over the variable, then calls <code>rlm_agent(query, chunk)</code> recursively on whichever slices it judges relevant. Each child call sees only the chunk it was given; the root never holds the raw long input in its own context. Depth and breadth of recursion are chosen by the model at each level based on what it observes.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      Compaction-based long-context handling (summarize first, then answer) loses any information the summarizer didn't think mattered. Single-shot RAG retrieves what the embedder thinks is relevant, not what the model would have looked at if it could read the index itself. RLM lets the model do the retrieval recursively, with its own evolving query in control of which chunks come back into context, and the child calls' returned answers act as a compressed memo the root can keep in its working set.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    big["Very long input <br> (up to ~10M tokens)"]:::muted
+    repl["Python REPL: <br> the input is a variable the model can examine"]
+    inspect["Root model peeks: <br> head, tail, len, grep, slice"]:::accent
+    plan["Root picks chunks to recurse into"]:::accent
+    c1["rlm_agent(query, chunk_1)"]
+    c2["rlm_agent(query, chunk_2)"]
+    recurse["Each child may recurse on its own chunk. <br> The tree adapts to the input's structure."]:::note
+    answer["Root receives the children's answers. <br> Raw chunks never enter root context."]:::accent
+
+    big --> repl
+    repl --> inspect
+    inspect --> plan
+    plan --> c1 & c2
+    c1 --> answer
+    c2 --> answer
+    recurse ~~~ c2
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: Zhang, Kraska, Khattab, <a href="https://arxiv.org/abs/2512.24601">arXiv:2512.24601</a>.</p>
+  </article>  <!-- P8: Claude Code subagents -->
+  <article class="instance-card h-cc" id="i-recurse-cc">
+    <h4><span class="harness-name">Claude Code subagents</span>: spawn child Claudes with isolated contexts and a focused task</h4>
+    <div class="harness-mini">
+      software engineering across whole repositories<span class="sep">·</span>
+      production tool with millions of users<span class="sep">·</span>
+      Claude Sonnet / Opus, 1M-token main context
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      The main Claude session has an <code>Agent</code> tool that spawns a fresh sub-Claude with a single focused task and an isolated context window. The sub-agent has access to the same tools (Read, Grep, Bash, Write) on the same filesystem, runs its own gather-and-reason loop, and returns one paragraph of summary text to the parent. The parent never sees the sub-agent's intermediate greps, file reads, or tool errors. Multiple sub-agents can be launched in parallel for independent sub-tasks.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      A flat agent loop pollutes its own context with every tool call's raw output, leaving less room for the actual reasoning and degrading attention over long sessions. Sub-agents act as a context boundary: the parent delegates "audit the test suite" or "find every caller of function X", and gets back a one-paragraph answer instead of a fifty-file transcript. Sub-agents can themselves spawn sub-agents, so the recursion adapts to repository scale without the engineer wiring the tree shape by hand.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    parent["Parent Claude: <br> overall task plan and synthesis"]:::accent
+    need{"Need to gather context <br> without polluting the main thread?"}
+    s1["Spawn sub-Claude #1: <br> 'find every caller of X'"]
+    s2["Spawn sub-Claude #2: <br> 'audit the test suite'"]
+    iso["Each sub-Claude has its own isolated context. <br> Reads, greps, runs tools. <br> Parent never sees the scratch."]:::note
+    ret["Each returns one paragraph of summary to the parent"]:::accent
+    cont["Parent integrates summaries and continues"]
+    nest["A sub-Claude can spawn its own sub-Claudes, <br> so the recursion adapts to repo scale."]:::note
+
+    parent --> need
+    need --> s1 & s2
+    s1 --> ret
+    s2 --> ret
+    iso ~~~ s1
+    ret --> cont
+    nest ~~~ s2
+</pre>
+    </div>
+  </article>  <!-- P8: Yunque DeepResearch -->
+  <article class="instance-card h-yunque" id="i-recurse-yunque">
+    <h4><span class="harness-name">Yunque DeepResearch</span>: hierarchical research agents, each sub-agent owns one sub-question</h4>
+    <div class="harness-mini">
+      open-ended scientific and web research, multi-source synthesis<span class="sep">·</span>
+      hierarchical agentic framework, modular sub-agent orchestration<span class="sep">·</span>
+      frozen LLM API
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      A top-level research agent receives a complex question, decomposes it into sub-questions, and dispatches each to a specialized sub-agent. Each sub-agent runs its own search loop (query, browse, extract, summarize) and may itself decompose further if its sub-question is still too broad. The top-level agent receives only the sub-agents' synthesized answers; raw browsed content stays inside the sub-agent contexts and is discarded when they return. Depth and breadth of the tree are user-controllable or model-controlled.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      A flat search loop with one context window has to choose at each step between exploring more sources and reasoning over what it has, and long sessions choke on accumulated raw search results. Decomposing into sub-agents whose contexts can be discarded after they return their summary keeps the top-level reasoning context clean while letting the system explore far more sources than a single context would fit. The hierarchy of contexts plays the same role here that a tree of files plays for RLM and a parent/child agent split plays for Claude Code.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    q["Complex research question"]:::muted
+    top["Top-level research agent <br> decomposes into sub-questions"]:::accent
+    g1["Sub-agent: sub-question A"]
+    g2["Sub-agent: sub-question B"]
+    g3["Sub-agent: sub-question C"]
+    loop["Each sub-agent runs its own search loop. <br> May spawn further sub-agents if still too broad."]:::note
+    syn["Top-level receives synthesized answers. <br> Raw sources stay inside sub-agent contexts."]:::accent
+    out["Final synthesis"]
+
+    q --> top
+    top --> g1 & g2 & g3
+    g1 --> syn
+    g2 --> syn
+    g3 --> syn
+    loop ~~~ g2
+    syn --> out
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: Yunque DeepResearch technical report, <a href="https://arxiv.org/abs/2601.19578">arXiv:2601.19578</a>.</p>
+  </article></section><!-- ============================================================
+     PATTERN 9: Skill Retrieval (KNN Few-Shot)
+     ============================================================ -->
+<section class="pattern-section p9" id="p-skill-retrieval">
+  <div class="pattern-head">
+    <div class="part-num">Pattern 9</div>
+    <h2>Skill Retrieval: K Nearest Examples</h2>
+    <p class="tagline">Build up a library of validated artifacts (skills, exemplars, code snippets) across attempts. At each new task, retrieve the K most relevant entries by embedding similarity and inject them into the prompt as few-shot demonstrations or callable utilities. The prompt is dynamically assembled from prior wins, instead of being hand-curated once and frozen.</p>
+  </div>  <div class="summary-grid">
+    <div>
+      <span class="label">What it helps with</span>
+      <p>Distribution shift across tasks where a single fixed prompt has to cover too much, agentic systems that face open-ended task streams (lifelong agents, repo-spanning code assistance), and domains where past solved cases carry transfer signal but a static example set goes stale fast. KNN injection lets the prompt specialize to each incoming task without hand-curating per-task examples.</p>
+    </div>
+    <div>
+      <span class="label">When to use it</span>
+      <p>When you have, or can build, a growing stream of successful prior runs that share structure with future tasks. When tasks differ enough that a one-size prompt drags performance down, but they're embeddable enough that nearest-neighbor retrieval picks up real similarity. When the retrieval substrate (vector store, BM25, hybrid) is cheap relative to the model call it shapes.</p>
+    </div>
+    <div>
+      <span class="label">When NOT to use it</span>
+      <p>When the task distribution is narrow enough that a hand-curated few-shot set wins. When prior runs are too sparse for retrieval to find real neighbors, noise dominates. When embedding similarity correlates poorly with solution similarity (lexically similar problems with structurally different answers), KNN actively misleads. When the library admission step is unverified, wrong answers accumulate and the library poisons future calls.</p>
+    </div>
+  </div>  <div class="illustration archetype">
+<pre class="mermaid">
+flowchart TB
+    lib[("Skill library: <br> validated artifacts from prior tasks, <br> each indexed by an embedding")]:::muted
+    task["New incoming task or state"]:::accent
+    embed["Embed the task or state"]
+    knn["Retrieve the K nearest entries by similarity"]:::accent
+    inject["Inject the K entries into the prompt: <br> as few-shot examples, callable functions, <br> or reference solutions"]
+    llm["LLM call, prompt now task-specific"]:::accent
+    result["Result"]
+    gate["Verifier admits the result to the library <br> only if it passes a check"]:::note
+    grow[("Library grows")]
+    why["Key invariants: <br> verifier-gated admission keeps the library clean, <br> embedding choice decides what 'similar' means."]:::note
+
+    lib --> knn
+    task --> embed
+    embed --> knn
+    knn --> inject
+    inject --> llm
+    llm --> result
+    result --> gate
+    gate --> grow
+    grow -. "next task" .-> lib
+    why ~~~ gate
+</pre>
+  </div>  <div class="instances-head">Concrete instances</div>  <!-- P9: Voyager skill library -->
+  <article class="instance-card h-voyager" id="i-knn-voyager">
+    <h4><span class="harness-name">Voyager</span>: lifelong Minecraft skill library, retrieved by task-embedding similarity</h4>
+    <div class="harness-mini">
+      Minecraft open-world tasks, lifelong learning, no terminal state<span class="sep">·</span>
+      3.3x more unique items, 15.3x faster tech-tree progress vs. prior open-source agents<span class="sep">·</span>
+      GPT-4 (frozen API)
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      Each verified successful skill (a Mineflayer JavaScript function such as "craft iron pickaxe" or "fight zombie") is added to the skill library along with an embedding of its natural-language description. On a new task, the curriculum agent embeds the current sub-task and retrieves the K nearest skills from the library, then injects them into the action-generation prompt as callable functions the agent can compose. Admission is gated by a self-critic that has to certify the skill ran cleanly in the environment, so the library grows monotonically with verified content.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      A general-purpose Minecraft agent prompt either has too few examples (the agent re-derives common skills every time it needs them, burning steps) or too many (the prompt is bloated and the agent loses the relevant ones in the noise). KNN retrieval gives the agent the K skills most relevant to the current sub-task, and only those. The library persists across episodes, so the agent inherits the work of every prior run, and the curriculum agent can target sub-tasks just beyond what the library already covers.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    lib[("Skill library: <br> every verified Mineflayer function, <br> indexed by description embedding")]:::muted
+    task["New sub-task from the curriculum"]:::accent
+    e["Embed the sub-task description"]
+    k["Retrieve K nearest skills"]:::accent
+    prompt["Inject the K skills as callable functions"]
+    act["Agent generates a new action program <br> that composes the retrieved skills"]:::accent
+    env["Run in Minecraft"]
+    critic{"Self-critic certifies success?"}
+    add["Add the new skill to the library"]:::accent
+
+    lib --> k
+    task --> e
+    e --> k
+    k --> prompt
+    prompt --> act
+    act --> env
+    env --> critic
+    critic -- yes --> add
+    add -. "next task" .-> lib
+</pre>
+    </div>
+  </article>  <!-- P9: HASP -->
+  <article class="instance-card h-hasp" id="i-knn-hasp">
+    <h4><span class="harness-name">HASP</span>: Skill Programs retrieved per step, intervene before the next action</h4>
+    <div class="harness-mini">
+      long-horizon agent tasks across domains<span class="sep">·</span>
+      retrieval-gated skill intervention at inference, post-training, and self-improvement<span class="sep">·</span>
+      frozen LLM
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      HASP maintains a library of validated Program Functions (PFs), small executable skills the agent can call. At each step of the agent loop, a retrieval layer pulls the top-K relevant PFs for the current state and lets them intervene before the next LLM action is taken. The agent's prompt at each step contains a curated subset of callable utilities chosen for the situation it's in right now, not a fixed tool roster baked in at design time. The same library can be evolved via teacher-reviewed self-improvement loops.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      A fixed tool roster grows unwieldy as the agent's capability surface expands, blowing out the prompt and slowing inference. KNN retrieval over PFs keeps the per-step prompt budget bounded while still giving the agent access to a large skill surface. Verified-PF gating prevents the library from drifting; the retrieval layer decides which subset to surface at each step, so a million-skill library still costs the same context budget as a hundred-skill one.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    state["Current agent state"]:::accent
+    lib[("PF library: <br> validated Program Functions, indexed by embedding")]:::muted
+    ret["Retrieve top-K relevant PFs"]:::accent
+    intervene["PFs intervene before the next LLM action: <br> filter, rewrite, or call directly"]
+    act["LLM picks the next action <br> from the PF-shaped action surface"]:::accent
+    out["Step result"]
+
+    state --> ret
+    lib --> ret
+    ret --> intervene
+    intervene --> act
+    act --> out
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: <a href="https://arxiv.org/abs/2605.17734">arXiv:2605.17734</a> (Harnessing LLM Agents with Skill Programs).</p>
+  </article>  <!-- P9: SkillFlow -->
+  <article class="instance-card h-skillflow" id="i-knn-skillflow">
+    <h4><span class="harness-name">SkillFlow</span>: cascaded retrieval pipeline, embeddings narrow then rerankers sharpen</h4>
+    <div class="harness-mini">
+      large-scale agent skill retrieval<span class="sep">·</span>
+      bi-encoder, then shallow reranker, then deep reranker, then LLM selector<span class="sep">·</span>
+      frozen LLM
+    </div>    <span class="label">How this harness uses it</span>
+    <p>
+      SkillFlow's retrieval is a cascade. A bi-encoder pulls ~1,000 candidate skills from the full library, a shallow cross-encoder reranks to ~100, a deep cross-encoder reranks to ~10, and an LLM-based selector picks ≤5 to inject into the agent's prompt. Each stage trades latency for precision: cheap embeddings narrow the field, expensive rerankers sharpen the top. The final selection is the few-shot demonstrations or callable utilities that go into the next LLM call.
+    </p>    <span class="label">Problem it solved here</span>
+    <p>
+      A single bi-encoder retrieval over thousands of skills returns too much noise to inject directly; a single cross-encoder over all candidates is too expensive to run per step. The cascade gives precision at the top of the ranked list without paying cross-encoder cost on every candidate, scaling KNN injection to libraries large enough to be useful for production agents. The structural move is the same KNN-few-shot pattern as Voyager and HASP, but the retrieval is its own multi-stage pipeline rather than a single embedding lookup.
+    </p>    <div class="illustration">
+<pre class="mermaid">
+flowchart TB
+    lib[("Full skill library: <br> ~thousands to millions of skills")]:::muted
+    bi["Bi-encoder: <br> retrieve ~1,000 candidates"]
+    s["Shallow cross-encoder rerank: <br> top ~100"]
+    d["Deep cross-encoder rerank: <br> top ~10"]:::accent
+    sel["LLM selector: <br> pick ≤5 skills"]:::accent
+    inj["Inject into agent prompt"]
+    why["Each stage trades latency for precision: <br> cheap embeddings narrow the field, <br> expensive rerankers sharpen the top."]:::note
+
+    lib --> bi
+    bi --> s
+    s --> d
+    d --> sel
+    sel --> inj
+    why ~~~ d
+</pre>
+    </div>
+    <p style="font-size:13px; color: var(--fg-dim); margin-top: 12px;">Reference: SkillFlow, <a href="https://arxiv.org/pdf/2504.06188">arXiv:2504.06188</a>.</p>
+  </article></section><!-- ============================================================
+     HARNESS CHEATSHEET
+     ============================================================ -->
+<section class="cheatsheet" id="cheatsheet">
+  <div class="cheatsheet-head">Harness cheatsheet: which patterns each harness uses</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Harness</th>
+        <th>Task in one line</th>
+        <th>Patterns instantiated</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="h-poetiq">
+        <td class="harness-cell">Poetiq</td>
+        <td class="task-cell">ARC-AGI grid puzzles, 2 attempts/task, frozen API</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-parallel-poetiq"><span class="num">P1</span> diversity + output-vote</a>
+        </td>
+      </tr>
+      <tr class="h-rstar">
+        <td class="harness-cell">rStar-Math</td>
+        <td class="task-cell">competition math (AIME), MCTS with terminal-grounded Q</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-tree-rstar"><span class="num">P4</span> multi-seed MCTS trees</a>
+        </td>
+      </tr>
+      <tr class="h-lats">
+        <td class="harness-cell">LATS</td>
+        <td class="task-cell">HotPotQA · HumanEval · WebShop, MCTS over LLM trajectories</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-roles-lats"><span class="num">P2</span> value-prompt</a>
+          <a class="pattern-badge" href="#i-vrl-lats"><span class="num">P3</span> reflection updates both roles</a>
+          <a class="pattern-badge" href="#i-tree-lats"><span class="num">P4</span> UCT-MCTS</a>
+        </td>
+      </tr>
+      <tr class="h-deepsearch">
+        <td class="harness-cell">deepsearch-tts</td>
+        <td class="task-cell">web-grounded QA (BrowseComp / GAIA / xBench), test-time scaling</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-roles-deepsearch"><span class="num">P2</span> solver vs. verifier</a>
+        </td>
+      </tr>
+      <tr class="h-alpha">
+        <td class="harness-cell">AlphaCodium</td>
+        <td class="task-cell">CodeContests competitive programming, multi-stage flow</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-parallel-alpha"><span class="num">P1</span> ratchet aggregation</a>
+          <a class="pattern-badge" href="#i-roles-alpha"><span class="num">P2</span> LLM as test author</a>
+        </td>
+      </tr>
+      <tr class="h-reflex">
+        <td class="harness-cell">Reflexion</td>
+        <td class="task-cell">programming / embodied / reasoning / web, self-reflective retry loop</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-vrl-reflex"><span class="num">P3</span> Actor / Eval / Reflector</a>
+        </td>
+      </tr>
+      <tr class="h-voyager">
+        <td class="harness-cell">Voyager</td>
+        <td class="task-cell">Minecraft lifelong learning, no terminal state</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-vrl-voyager"><span class="num">P3</span> critic-driven retry</a>
+          <a class="pattern-badge" href="#i-knn-voyager"><span class="num">P9</span> embedding-retrieved skill library</a>
+        </td>
+      </tr>
+      <tr class="h-smc">
+        <td class="harness-cell">Particle Filtering</td>
+        <td class="task-cell">sequential Monte Carlo inference, resample partial rollouts at checkpoints</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-tree-smc"><span class="num">P4</span> population resampling</a>
+        </td>
+      </tr>
+      <tr class="h-mad">
+        <td class="harness-cell">MAD</td>
+        <td class="task-cell">GSM8K · MMLU · arithmetic · biographies — 3 agents × 2 rounds, identical prompt across tasks</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-mad-canonical"><span class="num">P5</span> opinions-as-advice + last-round majority vote</a>
+        </td>
+      </tr>
+      <tr class="h-madmm">
+        <td class="harness-cell">MAD-M²</td>
+        <td class="task-cell">MATH · AIME — vanilla MAD + per-round per-agent mask over suspect peer responses</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-mad-madmm"><span class="num">P5</span> error-propagation patch via masking</a>
+        </td>
+      </tr>
+      <tr class="h-imad">
+        <td class="harness-cell">iMAD</td>
+        <td class="task-cell">MEDQA · GSM8K · VQA — gate before debating; cheap feature MLP decides skip vs invoke</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-mad-imad"><span class="num">P5</span> selective debate via adversarial self-critique gate</a>
+        </td>
+      </tr>
+      <tr class="h-meta">
+        <td class="harness-cell">Meta-Harness</td>
+        <td class="task-cell">IMO-level math, 200 problems, frozen API; harness is the search variable</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-routing-meta"><span class="num">P6</span> lexical 4-route dispatch + per-route retrieval recipe</a>
+          <a class="pattern-badge" href="#i-search-meta"><span class="num">P7</span> Claude Code proposer + filesystem of full prior source</a>
+        </td>
+      </tr>
+      <tr class="h-prism">
+        <td class="harness-cell">PRISM</td>
+        <td class="task-cell">MATH · GSM8K · AQUA-RAT · SVAMP · ASDiv — small router LM picks reasoning strategy + compute mode</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-routing-prism"><span class="num">P6</span> soft-distribution router + three-tier confidence-graded mode</a>
+        </td>
+      </tr>
+      <tr class="h-poetiqrsi">
+        <td class="harness-cell">Poetiq Meta-System</td>
+        <td class="task-cell">LiveCodeBench Pro — recursive self-improvement; harness transfers across LLMs without re-tuning</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-search-poetiqrsi"><span class="num">P7</span> cross-benchmark harness reuse, frozen-API transfer</a>
+        </td>
+      </tr>
+      <tr class="h-rlm">
+        <td class="harness-cell">Recursive Language Models</td>
+        <td class="task-cell">long-context QA up to 10M tokens, model recursively calls itself on chunks of a Python variable</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-recurse-rlm"><span class="num">P8</span> recursive self-call over chunks</a>
+        </td>
+      </tr>
+      <tr class="h-cc">
+        <td class="harness-cell">Claude Code subagents</td>
+        <td class="task-cell">repo-scale software engineering, parent Claude spawns isolated child Claudes for sub-tasks</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-recurse-cc"><span class="num">P8</span> context-isolated child agents</a>
+        </td>
+      </tr>
+      <tr class="h-yunque">
+        <td class="harness-cell">Yunque DeepResearch</td>
+        <td class="task-cell">open-ended scientific/web research, hierarchical sub-agent decomposition of complex questions</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-recurse-yunque"><span class="num">P8</span> hierarchical research sub-agents</a>
+        </td>
+      </tr>
+      <tr class="h-hasp">
+        <td class="harness-cell">HASP</td>
+        <td class="task-cell">long-horizon agent tasks, Skill Programs retrieved per step and intervene before next action</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-knn-hasp"><span class="num">P9</span> retrieval-gated skill intervention</a>
+        </td>
+      </tr>
+      <tr class="h-skillflow">
+        <td class="harness-cell">SkillFlow</td>
+        <td class="task-cell">large-scale agent skill retrieval, cascaded bi-encoder then rerankers then LLM selector</td>
+        <td class="patterns-cell">
+          <a class="pattern-badge" href="#i-knn-skillflow"><span class="num">P9</span> cascaded multi-stage retrieval</a>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+<footer>
+  Nine meta-patterns extracted from open-source LLM harnesses, the sequential-Monte-Carlo line of work, the Multi-Agent Debate family (Du et al., MAD-M², iMAD), the per-problem routing line (Meta-Harness, PRISM), the harness-as-search-variable line (Meta-Harness, Poetiq Meta-System), the Recursive Language Models line (Zhang et al.; Claude Code subagents; Yunque DeepResearch), and the skill-retrieval line (Voyager; HASP; SkillFlow).
+</footer></div>
+</body>
+</html>
