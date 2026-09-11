@@ -9,6 +9,7 @@ Static learning blog for notebooks, posts, indexed materials, and project routes
 - `projects/harness-engineering/index.html` links to the harness engineering site and repo.
 - `harness/index.html` preserves the existing harness page while the repo root becomes the learning blog.
 - `blog/index.html` is the writing index.
+- `blog/benchmark-familiarity/` presents the question-prediction experiments, with charts, a PDF report and a downloadable results bundle in `assets/benchmark-familiarity/`.
 - `materials/index.html` is the indexed materials library.
 - `assets/night-sky-banner.png` is the generated homepage banner.
 - `assets/david-profile.jpg` is the circular homepage profile photo.
