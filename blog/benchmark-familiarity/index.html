@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Can a model recognize the exam? | David Schiff</title>
-    <meta name="description" content="Two small experiments inspired by Dwarkesh Patel and Jerry Han's pretraining study: predicting OLMES question wording, checking novel controls, and comparing benchmark-age loss slopes.">
+    <meta name="description" content="Three small experiments inspired by Dwarkesh Patel and Jerry Han's pretraining study: predicting OLMES wording, checking novel controls, comparing benchmark-age slopes, and testing calibration-free top-1, top-5, and top-10 word ranks.">
     <link rel="canonical" href="https://davidschiff100.github.io/learning/blog/benchmark-familiarity/">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Can a model recognize the exam?">
@@ -35,11 +35,11 @@
           <h1>Can a model recognize the exam?</h1>
           <p class="dek">A small test of benchmark familiarity, inspired by the question of where pretraining progress comes from.</p>
           <p class="byline">David Schiff <span aria-hidden="true">/</span> <time datetime="2026-09-11">September 11, 2026</time> <span aria-hidden="true">/</span> 10-minute read</p>
-          <div class="finding"><span class="finding-label">What I found</span><p>OLMES looked familiar until I changed the comparison text. Then I tested benchmark age: the newer model’s prediction advantage stayed almost flat. Neither experiment gave convincing evidence of leakage.</p></div>
+          <div class="finding"><span class="finding-label">What I found</span><p>OLMES looked familiar until I changed the comparison text. Benchmark-age loss slopes were nearly parallel. In a calibration-free word-ranking check, top-1 and top-5/top-10 moved in opposite temporal directions; every interval included zero, and the novel control improved even more than OLMES.</p></div>
         </header>
 
         <nav class="contents" aria-label="On this page">
-          <a href="#motivation">The question</a><a href="#method">The method</a><a href="#controls">Experiment 1</a><a href="#dates">Experiment 2</a><a href="#meaning">What it means</a><a href="#evidence">Data &amp; report</a>
+          <a href="#motivation">The question</a><a href="#method">The method</a><a href="#controls">Experiment 1</a><a href="#dates">Experiment 2</a><a href="#ranks">Rank check</a><a href="#meaning">What it means</a><a href="#evidence">Data &amp; report</a>
         </nav>
 
         <section class="prose" id="motivation">
@@ -121,24 +121,42 @@
           <p>That is an inconclusive result, not proof that the slopes are equal. There are only nine heterogeneous families. Their differences in domain and wording are substantial: PIQA averages about seven words, while BoolQ averages about 102 including the passage. The bootstrap holds sampled-item means fixed and does not propagate all item-sampling uncertainty.</p>
         </section>
 
+        <section class="prose" id="ranks">
+          <p class="section-number">05 / Calibration check</p>
+          <h2>Replace probability values with word ranks</h2>
+          <p>Raw negative log probability can be awkward across models because their probability scales differ. I therefore reran the neutral 50% continuation using exact next-word top-1, top-5 and top-10 accuracy. Words are divided only at literal spaces.</p>
+          <p>Both models still operate on subword tokens. To make the comparison exact and tokenizer-neutral, I built the intersection of strings that each tokenizer represents as one canonical token: <strong>28,853 shared words</strong>. I evaluated only target positions in that shared vocabulary and excluded multi-token words from both models. This covers 80.2% of the OLMES continuation words. It is a clean rank comparison on that subset, not open-vocabulary word generation.</p>
+        </section>
+
+        <figure class="wide-figure">
+          <a href="../../assets/benchmark-familiarity/word-topk.png" aria-label="Open the word top-k chart at full size"><img src="../../assets/benchmark-familiarity/word-topk.png" alt="Top-1, top-5 and top-10 exact next-word accuracy for the two models across OLMES, corpus controls, English IOL, and mixed IOL. MiniCPM improves on OLMES, but improves even more on the novel English IOL control at top-1 and top-5." width="2520" height="810" loading="lazy"></a>
+          <figcaption><span>Figure 4.</span> Accuracy among identical shared one-token word candidates. Multi-token targets are excluded symmetrically; coverage differs by text group.</figcaption>
+        </figure>
+
+        <section class="prose">
+          <p>On OLMES, top-1 accuracy rises from 35.1% for GPT-2 to 42.2% for MiniCPM; top-5 rises from 60.1% to 67.6%, and top-10 from 67.2% to 75.3%. Relative to each model’s own corpus control, the OLMES advantage grows by 4.3, 7.9 and 7.4 points respectively. That looks suggestive until we check the novel English control: MiniCPM improves by 10.3 top-1 points and 12.6 top-5 points there, more than its OLMES gains. General predictive ability remains a sufficient explanation.</p>
+          <p>The date test is inconsistent across <em>k</em>. At top-1, the newer-model advantage grows by 1.7 percentage points per year, opposite the hypothesized direction, with a descriptive interval [−2.9, +7.9]. It declines by 1.0 point per year at top-5 [−3.6, +1.3] and 2.1 points at top-10 [−9.0, +2.9]. Every interval includes zero.</p>
+          <div class="finding"><span class="finding-label">What changed?</span><p>The result no longer depends on calibrated probability values, but the substantive conclusion stays the same: the temporal rank evidence changes direction with <em>k</em> and is compatible with no effect, while the novel-control gain shows that model ability is still confounded with familiarity.</p></div>
+        </section>
+
         <section class="prose" id="meaning">
-          <p class="section-number">05 / What this means</p>
+          <p class="section-number">06 / What this means</p>
           <h2>A useful question, an unresolved explanation</h2>
-          <p>I started with a plausible concern and did not get convincing supporting evidence. The first experiment was sensitive to the choice of control. The second did not show the predicted loss of relative advantage on newer benchmarks. Neither tells us that the models are contamination-free.</p>
+          <p>I started with a plausible concern and did not get convincing supporting evidence. The first experiment was sensitive to the choice of control. The second did not show a reliable loss of relative advantage on newer benchmarks. The word-rank check removed probability calibration but remained uncertain. None tells us that the models are contamination-free.</p>
           <p>For the question raised by Patel and Han’s study, the right conclusion is modest: this pilot cannot explain their reported data gains, validate them, or dismiss them. Their experiment varies training recipes and datasets under controlled compute budgets; mine probes wording predictability in two differently sized existing checkpoints.</p>
           <p>A better next test would use multiple years of the <em>same exam series</em>, with closely matched subject and format, spanning a verified training cutoff. I would want enough independent questions and, where possible, exact records known to have been consumed during training. Direct overlap checks in the actual training snapshot would provide stronger exposure evidence than loss alone.</p>
           <p>The lesson I’m taking away is methodological: <strong>before treating low loss as memory, check what else makes the text easy to predict.</strong> In this experiment, the choice of control mattered more than the signal I was looking for.</p>
         </section>
 
         <section class="prose evidence" id="evidence">
-          <p class="section-number">06 / Data &amp; report</p>
+          <p class="section-number">07 / Data &amp; report</p>
           <h2>Inspect the experiment</h2>
-          <p>The PDF contains the full methodology and both experiments. The result bundle includes per-item scores and compact summaries without redistributing the sampled source text. Its README explains how to reproduce the plotted slopes from the saved scores.</p>
+          <p>The PDF contains the full methodology and all three experiments. The downloadable result bundle includes the word-rank summaries, candidate-vocabulary definition, and temporal rank statistics without redistributing the sampled source text.</p>
           <div class="action-row"><a class="button" href="../../assets/benchmark-familiarity/benchmark_experiment_findings.pdf">Read the PDF report</a><a class="button secondary" href="../../assets/benchmark-familiarity/results.zip" download>Download results &amp; analysis</a></div>
           <details><summary>Run details, uncertainty and model provenance</summary>
             <p>The final pilot contains 1,380 score rows over 160 texts. The temporal run contains 3,570 valid rows of 3,600 possible combinations: 300 items × two models × two prompt conditions × three prefix fractions. Missing suffixes were not assigned zero loss. Missingness matched across models. One long BoolQ item was shortened identically; no pilot text was shortened.</p>
             <p>Pilot contrast intervals use 5,000 resamples over document/problem clusters; IOL has only five problem clusters. Temporal intervals use 10,000 family resamples with fixed item means. Normalized comparisons do not propagate corpus-calibration uncertainty. The estimates are exploratory, and no interval addresses model-size or domain confounding.</p>
-            <p>Both models ran locally in FP16 on a GTX 1650 with 4 GB of VRAM, batch size one, evaluation mode and no KV cache. Five scoring tests passed; tokenizer round trips preserved all inputs. Final scoring passes took 123.3 and 226.4 seconds. Paid-service cost was $0; these times exclude setup, downloads and earlier iterations.</p>
+            <p>Both models ran locally in FP16 on a GTX 1650 with 4 GB of VRAM, batch size one, evaluation mode and no KV cache. Five scoring tests passed; tokenizer round trips preserved all inputs. The original final scoring passes took 123.3 and 226.4 seconds. The final two word-rank passes took 107.9 and 103.4 seconds. Paid-service cost was $0; these times exclude setup, downloads and earlier iterations.</p>
             <p>No model or membership probe was trained. The original full-corpus overlap proposal was not completed; corpus samples supplied the controls. Failed search-index requests were not evidence of absence.</p>
             <p>Older checkpoint: <a href="https://huggingface.co/stanford-crfm/battlestar-gpt2-small-x49/tree/2f4e2079c9ac92c2b5c6fecc19fae645bcef56fa">stanford-crfm/battlestar-gpt2-small-x49</a>, 124,439,808 parameters, pinned June 20, 2022 revision. Newer: <a href="https://huggingface.co/openbmb/MiniCPM5-1B-Base/tree/f120ef901e3a11c2ed5fcfd242296cea3e80191b">openbmb/MiniCPM5-1B-Base</a>, 1,080,632,832 parameters, pinned May 25, 2026 revision. The bundle records exact revisions, benchmark dates and source links.</p>
           </details>
