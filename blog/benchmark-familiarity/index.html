@@ -126,11 +126,12 @@
 
         <section class="prose" id="meaning">
           <p class="section-number">05 / What this means</p>
-          <h2>A useful question, an unresolved explanation</h2>
-          <p>I started with a plausible concern and used word ranks so probability calibration would not decide the result. Experiment 1 remains sensitive to the choice of control. Experiment 2 changes direction across top-1, top-5 and top-10, with every interval crossing zero. Neither gives convincing evidence of leakage, and neither shows that the models are contamination-free.</p>
-          <p>For the question raised by Patel and Han’s study, the right conclusion is modest: this pilot cannot explain their reported data gains, validate them, or dismiss them. Their experiment varies training recipes and datasets under controlled compute budgets; mine probes wording predictability in two differently sized existing checkpoints.</p>
-          <p>A better next test would use multiple years of the <em>same exam series</em>, with matched subject and format across a verified training cutoff. Confirmed consumed records would provide stronger positive controls, and models with a shared tokenizer would remove the remaining fragmentation difference.</p>
-          <p>The lesson I’m taking away is methodological: <strong>rank-based prediction avoids calibration, but it does not separate memory from intelligence.</strong> Controls that match the benchmark’s language and format remain essential.</p>
+          <h2>What the results show</h2>
+          <p>MiniCPM predicts more OLMES words than GPT-2. Its gain over GPT-2 is even larger on the recent English IOL text, however, even though that material was published after both model checkpoints. Better prediction on OLMES therefore cannot by itself tell us that MiniCPM saw the benchmark during training.</p>
+          <p>The benchmark-date test is also inconsistent. If older questions had circulated more widely and MiniCPM benefited from seeing them, we expected its advantage to shrink on newer benchmarks. Instead, the advantage grows with date at top-1 and shrinks at top-5 and top-10. Every uncertainty interval includes zero.</p>
+          <p>Taken together, these two experiments do not give convincing evidence that benchmark leakage explains MiniCPM’s advantage. They also cannot tell us that either model is free of OLMES contamination. Model size, architecture, tokenizer, training volume and ordinary language ability could all affect the same measurements.</p>
+          <p>This small comparison also cannot explain Patel and Han’s reported data gains. They trained controlled combinations of model recipes and datasets; I compared two existing checkpoints that differ in many ways.</p>
+          <p>A stronger test would need examples known to have been consumed during training, closely matched examples created after the training cutoff, and preferably models with the same size and tokenizer but different training data. Those controls would make it easier to tell memorization from general prediction skill.</p>
         </section>
 
         <section class="prose evidence" id="evidence">
