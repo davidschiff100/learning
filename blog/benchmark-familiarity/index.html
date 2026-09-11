@@ -8,7 +8,7 @@
     <link rel="canonical" href="https://davidschiff100.github.io/learning/blog/benchmark-familiarity/">
     <meta property="og:type" content="article">
     <meta property="og:title" content="Can a model recognize the exam?">
-    <meta property="og:description" content="I tested benchmark familiarity with calibration-free next-word ranks. The controls and benchmark-age slopes do not give convincing evidence of leakage.">
+    <meta property="og:description" content="I tested benchmark familiarity with calibration-free, teacher-forced reconstruction of complete words. The controls and benchmark-age slopes do not give convincing evidence of leakage.">
     <meta property="og:url" content="https://davidschiff100.github.io/learning/blog/benchmark-familiarity/">
     <meta property="og:image" content="https://davidschiff100.github.io/learning/assets/benchmark-familiarity/word-accuracy-by-date.png">
     <meta name="twitter:card" content="summary_large_image">
@@ -60,13 +60,13 @@
             <p><span class="prefix">“Which material would be best for”</span> <span class="continuation">“keeping a drink cold?”</span></p>
             <div class="example-key"><span><i class="prefix-key" aria-hidden="true"></i> Supplied beginning</span><span><i class="target-key" aria-hidden="true"></i> Predict these words</span></div>
           </div>
-          <p>Scoring is <em>teacher forced</em>: before every prediction, the model sees all preceding true words. A word counts as a top-1, top-5 or top-10 hit when its exact spelling—including attached punctuation—is among the model’s first 1, 5 or 10 candidates within the shared vocabulary described below. Words are divided only at literal spaces.</p>
+          <p>Scoring is <em>teacher forced</em>: at every subword step, the model sees the complete true text before that position. I divide the target into literal-space words, including attached punctuation, and tokenize each whole word for each model. A word is a top-1, top-5 or top-10 reconstruction only when <strong>every token composing that word</strong> is inside the corresponding next-token cutoff. Multi-token words are included.</p>
           <h3>Why ranks instead of negative log probability?</h3>
           <p>Raw negative log probability is sensitive to calibration. Two models can rank the same continuation identically while assigning very different probability values because one produces sharper logits. Top-<em>k</em> accuracy uses only the ordering of predictions, so additive logit shifts and positive temperature rescaling cannot change the result.</p>
-          <p>The models also use different subword vocabularies. I therefore built a common candidate set containing the <strong>28,853 space-delimited strings that both tokenizers encode as exactly one canonical token</strong>. A target is evaluated only when it belongs to this shared set. Multi-token words are excluded from both models rather than counted as failures. The result compares identical word candidates at identical positions; 80.2% of the OLMES pilot’s continuation words are eligible.</p>
-          <p>This choice trades breadth for comparability. It measures common one-token words rather than every possible word, and top-<em>k</em> ignores how far below the cutoff a miss falls. Reporting top-1, top-5 and top-10 shows whether the conclusion depends on one arbitrary cutoff.</p>
+          <p>This is an exact teacher-forced reconstruction test, rather than a claim that the sequence is literally among the model’s globally highest-probability <em>k</em> complete words. At top-5, for example, the true token path must survive the top-five cutoff at every step until the entire space-delimited word has been reconstructed.</p>
+          <p>The method covers <strong>every continuation word</strong>, but tokenization still matters: a word split into more pieces creates more opportunities to fail. On OLMES, GPT-2 uses 1.27 tokens per word and MiniCPM 1.21. Reporting top-1, top-5 and top-10 shows whether the conclusion depends on one cutoff, while the token-count difference remains a limitation.</p>
           <p>For BoolQ and SocialIQA, the text includes the passage or context followed by the question. The halfway split applies to that combined text, so some predicted words are context. Other tasks use their question stem or completion context.</p>
-          <aside class="method-note"><h3>The two models</h3><p><strong>Older:</strong> Stanford’s OpenWebText-trained GPT-2 Small, 124M parameters, with a pinned 2022 checkpoint.</p><p><strong>Newer:</strong> MiniCPM5-1B-Base, 1.08B parameters, with a pinned May 2026 checkpoint. Its training mixture includes Ultra-FineWeb and other datasets.</p><p>They differ in size, architecture and training mixture. Rank removes probability-calibration and tokenizer-candidate differences; it does not remove the newer model’s greater general capability.</p></aside>
+          <aside class="method-note"><h3>The two models</h3><p><strong>Older:</strong> Stanford’s OpenWebText-trained GPT-2 Small, 124M parameters, with a pinned 2022 checkpoint.</p><p><strong>Newer:</strong> MiniCPM5-1B-Base, 1.08B parameters, with a pinned May 2026 checkpoint. Its training mixture includes Ultra-FineWeb and other datasets.</p><p>They differ in size, architecture, tokenizer and training mixture. Per-step ranks remove probability calibration; they do not remove tokenizer fragmentation or the newer model’s greater general capability.</p></aside>
         </section>
 
         <section class="prose" id="controls">
@@ -79,16 +79,16 @@
         </section>
 
         <figure class="wide-figure">
-          <a href="../../assets/benchmark-familiarity/word-topk.png" aria-label="Open the control comparison at full size"><img src="../../assets/benchmark-familiarity/word-topk.png" alt="Top-1, top-5 and top-10 exact next-word accuracy for both models across OLMES, corpus controls, English IOL and mixed IOL." width="2520" height="810" loading="lazy"></a>
-          <figcaption><span>Figure 1.</span> Exact next-word accuracy among the shared one-token vocabulary. Multi-token targets are excluded symmetrically. Coverage is 80.2% for OLMES, 82–83% for corpus passages, 72.5% for English IOL and 52.2% for mixed IOL.</figcaption>
+          <a href="../../assets/benchmark-familiarity/word-topk.png" aria-label="Open the control comparison at full size"><img src="../../assets/benchmark-familiarity/word-topk.png" alt="Top-1, top-5 and top-10 teacher-forced reconstruction of complete words for both models across OLMES, corpus controls, English IOL and mixed IOL." width="2520" height="810" loading="lazy"></a>
+          <figcaption><span>Figure 1.</span> Exact teacher-forced reconstruction of every complete space-delimited word. A word succeeds only if all of its constituent tokens pass the cutoff.</figcaption>
         </figure>
 
         <section class="prose">
-          <p>On OLMES, GPT-2 reaches 35.1% top-1, 60.1% top-5 and 67.2% top-10. MiniCPM reaches 42.2%, 67.6% and 75.3%. The newer-model gains are therefore <strong>+7.1, +7.5 and +8.1 percentage points</strong>; paired cluster-bootstrap intervals exclude zero for these pilot estimates.</p>
-          <p>Relative to each model’s own corpus control, the OLMES advantage grows from 1.8 to 6.1 points at top-1, from 1.7 to 9.6 at top-5, and from 0.6 to 7.9 at top-10. That pattern is consistent with extra OLMES familiarity, but the corpus excerpts are not genre-matched and exact checkpoint consumption is unverified.</p>
-          <div class="finding"><span class="finding-label">Expected → observed</span><p>Expected: the newer model would gain unusually much on OLMES relative to genuinely recent text. Observed: MiniCPM gains 10.3 top-1 points and 12.6 top-5 points on the novel English IOL control—more than its OLMES gains.</p></div>
-          <p>Mixed IOL is difficult for both models and has only 52.2% shared-word coverage. English IOL is the fairer sensitivity: its top-1 accuracy is 48.3% for GPT-2 and 58.6% for MiniCPM; top-5 is 67.8% and 80.5%. General language ability can therefore produce an improvement at least as large as the OLMES result.</p>
-          <p><strong>My read:</strong> the control experiment does not isolate exposure. OLMES receives a real rank advantage in this sample, but a post-training English control receives a larger advantage at top-1 and top-5.</p>
+          <p>On OLMES, GPT-2 reconstructs 30.6% of words at top-1, 56.4% at top-5 and 63.4% at top-10. MiniCPM reaches 37.9%, 64.2% and 72.1%. The newer-model gains are therefore <strong>+7.3, +7.9 and +8.7 percentage points</strong>; paired cluster-bootstrap intervals exclude zero for these pilot estimates.</p>
+          <p>Relative to each model’s own corpus control, the OLMES advantage rises from 3.7 to 6.4 points at top-1, from 4.2 to 10.2 at top-5, and from 1.2 to 8.2 at top-10. That pattern is consistent with extra OLMES familiarity, but the corpus excerpts are not genre-matched and exact checkpoint consumption is unverified.</p>
+          <div class="finding"><span class="finding-label">Expected → observed</span><p>Expected: the newer model would gain unusually much on OLMES relative to genuinely recent text. Observed: the English IOL gains are +7.5, +14.2 and +10.8 points at top-1, top-5 and top-10—larger than the OLMES gains at every cutoff.</p></div>
+          <p>Mixed IOL remains difficult because it includes unfamiliar languages and tables. English IOL is the fairer sensitivity: GPT-2 reconstructs 38.3%, 54.2% and 65.0%; MiniCPM reaches 45.8%, 68.3% and 75.8%. General predictive ability can therefore produce an improvement at least as large as the OLMES result.</p>
+          <p><strong>My read:</strong> the control experiment does not isolate exposure. OLMES receives a real reconstruction advantage in this sample, but the post-training English control receives a larger advantage at all three cutoffs.</p>
         </section>
 
         <section class="prose" id="dates">
@@ -96,29 +96,29 @@
           <h2>Does the advantage fade on newer benchmarks?</h2>
           <p>The second test stays within OLMES: order its benchmark families by date and plot top-1, top-5 and top-10 question-word accuracy.</p>
           <p>The hypothesis is conditional: <strong>if the newer model’s advantage disproportionately reflects exposure to older benchmark wording, and that benefit fades on later benchmarks, its accuracy advantage should decline with benchmark date.</strong> The key statistic is the slope of newer-minus-older accuracy.</p>
-          <p>I froze a separate sample of 30 items per component, 300 in total. There are 296 paired texts with at least one eligible continuation word and 3,842 eligible word positions, identical across models.</p>
+          <p>I froze a separate sample of 30 items per component, 300 in total. There are 296 paired texts with at least one continuation word and <strong>4,699 complete word positions</strong>, identical across models.</p>
           <p>The dates are first arXiv submission dates, used as a proxy for benchmark age. They span 2018–2020 and do not establish when each underlying question first appeared. ARC Easy and ARC Challenge share one paper, so I average them into one family. That leaves nine equally weighted families.</p>
           <aside class="expectation"><h3>What would support the hypothesis?</h3><p>As benchmark date increases, the gap between MiniCPM and GPT-2 accuracy would narrow. In the direct advantage plot, that means a negative slope.</p><p>This is not required by leakage in general: every family predates the newer checkpoint, so the newer model could have encountered later families too.</p></aside>
         </section>
 
         <figure class="wide-figure">
-          <a href="../../assets/benchmark-familiarity/word-accuracy-by-date.png" aria-label="Open the benchmark-date word-accuracy chart at full size"><img src="../../assets/benchmark-familiarity/word-accuracy-by-date.png" alt="Top-1, top-5 and top-10 eligible-word accuracy versus first benchmark preprint date for GPT-2 and MiniCPM." width="2520" height="827" loading="lazy"></a>
+          <a href="../../assets/benchmark-familiarity/word-accuracy-by-date.png" aria-label="Open the benchmark-date word-reconstruction chart at full size"><img src="../../assets/benchmark-familiarity/word-accuracy-by-date.png" alt="Top-1, top-5 and top-10 full-word reconstruction versus first benchmark preprint date for GPT-2 and MiniCPM." width="2520" height="827" loading="lazy"></a>
           <figcaption><span>Figure 2.</span> Each point is a benchmark-family mean. Lines are equally weighted ordinary least-squares fits across nine families. Accuracy refers to exact question or context words, not answers.</figcaption>
         </figure>
 
         <section class="prose">
-          <p>Both models’ fitted accuracy rises with benchmark date, although task composition is highly confounded with time. At top-1, the slopes are +1.4 points/year for GPT-2 and +3.1 for MiniCPM. At top-5 they are +4.1 and +3.0; at top-10, +2.9 and +0.8.</p>
+          <p>Both models’ fitted reconstruction accuracy rises with benchmark date, although task composition is highly confounded with time. At top-1, the slopes are +0.9 points/year for GPT-2 and +3.3 for MiniCPM. At top-5 they are +3.7 and +1.6; at top-10, +2.5 and +0.9.</p>
           <p>The separate model slopes are descriptive. Subtracting GPT-2 accuracy from MiniCPM accuracy tests the proposed pattern more directly.</p>
         </section>
 
         <figure class="wide-figure">
-          <a href="../../assets/benchmark-familiarity/word-advantage-by-date.png" aria-label="Open the relative word-accuracy chart at full size"><img src="../../assets/benchmark-familiarity/word-advantage-by-date.png" alt="Newer-minus-older word accuracy versus benchmark date. Top-1 slopes upward while top-5 and top-10 slope downward; all family-bootstrap intervals include zero." width="2520" height="827" loading="lazy"></a>
+          <a href="../../assets/benchmark-familiarity/word-advantage-by-date.png" aria-label="Open the relative full-word reconstruction chart at full size"><img src="../../assets/benchmark-familiarity/word-advantage-by-date.png" alt="Newer-minus-older full-word reconstruction versus benchmark date. Top-1 slopes upward while top-5 and top-10 slope downward; all family-bootstrap intervals include zero." width="2520" height="827" loading="lazy"></a>
           <figcaption><span>Figure 3.</span> Positive values favor MiniCPM. A downward trend matches the hypothesized loss of familiarity advantage. The three cutoffs disagree on direction, and the family spread is large.</figcaption>
         </figure>
 
         <section class="prose">
-          <div class="finding"><span class="finding-label">Expected → observed</span><p>Expected: MiniCPM’s accuracy advantage would decline on newer benchmarks. Observed: it grows by 1.7 points/year at top-1, but declines by 1.0 at top-5 and 2.1 at top-10. The result changes direction with <em>k</em>.</p></div>
-          <p>The descriptive 95% family-bootstrap intervals are [−2.9, +7.9] points/year for top-1, [−3.6, +1.3] for top-5 and [−9.0, +2.9] for top-10. Every interval includes zero.</p>
+          <div class="finding"><span class="finding-label">Expected → observed</span><p>Expected: MiniCPM’s reconstruction advantage would decline on newer benchmarks. Observed: it grows by 2.4 points/year at top-1, but declines by 2.0 at top-5 and 1.6 at top-10. The result changes direction with <em>k</em>.</p></div>
+          <p>The descriptive 95% family-bootstrap intervals are [−1.4, +7.5] points/year for top-1, [−7.9, +2.4] for top-5 and [−6.2, +2.8] for top-10. Every interval includes zero.</p>
           <p>This is inconclusive, not proof of equal slopes. There are only nine heterogeneous families, MMLU is the only 2020 family, and date is entangled with domain, format and difficulty.</p>
         </section>
 
@@ -127,19 +127,19 @@
           <h2>A useful question, an unresolved explanation</h2>
           <p>I started with a plausible concern and used word ranks so probability calibration would not decide the result. Experiment 1 remains sensitive to the choice of control. Experiment 2 changes direction across top-1, top-5 and top-10, with every interval crossing zero. Neither gives convincing evidence of leakage, and neither shows that the models are contamination-free.</p>
           <p>For the question raised by Patel and Han’s study, the right conclusion is modest: this pilot cannot explain their reported data gains, validate them, or dismiss them. Their experiment varies training recipes and datasets under controlled compute budgets; mine probes wording predictability in two differently sized existing checkpoints.</p>
-          <p>A better next test would use multiple years of the <em>same exam series</em>, with matched subject and format across a verified training cutoff. Confirmed consumed records would provide stronger positive controls, and multi-token word scoring would broaden coverage.</p>
+          <p>A better next test would use multiple years of the <em>same exam series</em>, with matched subject and format across a verified training cutoff. Confirmed consumed records would provide stronger positive controls, and models with a shared tokenizer would remove the remaining fragmentation difference.</p>
           <p>The lesson I’m taking away is methodological: <strong>rank-based prediction avoids calibration, but it does not separate memory from intelligence.</strong> Controls that match the benchmark’s language and format remain essential.</p>
         </section>
 
         <section class="prose evidence" id="evidence">
           <p class="section-number">06 / Data &amp; report</p>
           <h2>Inspect the experiment</h2>
-          <p>The PDF contains the shared methodology and both word-rank experiments. The result bundle includes pilot summaries, control contrasts, benchmark-family results, temporal slopes, dates and the candidate-vocabulary definition without redistributing sampled source text.</p>
+          <p>The PDF contains the shared methodology and both full-word reconstruction experiments. The result bundle includes pilot summaries, control contrasts, benchmark-family results, temporal slopes, dates and the complete inference and analysis scripts without redistributing sampled source text.</p>
           <div class="action-row"><a class="button" href="../../assets/benchmark-familiarity/benchmark_experiment_findings.pdf">Read the PDF report</a><a class="button secondary" href="../../assets/benchmark-familiarity/results.zip" download>Download results &amp; analysis</a></div>
           <details><summary>Run details, uncertainty and model provenance</summary>
-            <p>The control experiment has 130 natural-language texts and 260 model-text rows. The temporal experiment has 296 paired scorable texts and 3,842 eligible word positions per model. Eligible positions and denominators match exactly across models.</p>
+            <p>The control experiment has 130 natural-language texts and 2,228 reconstructed word positions per model. The temporal experiment has 296 paired scorable texts and 4,699 word positions per model. No multi-token word is discarded.</p>
             <p>Pilot intervals resample document/problem clusters; IOL has only five independent problem clusters. Temporal intervals use 10,000 family resamples over nine families with sampled-item means fixed. The estimates do not address model-size, domain or capability confounding.</p>
-            <p>Both models ran locally in FP16 on a GTX 1650 with 4 GB of VRAM. The two final rank passes took 107.9 and 103.4 seconds. Five project scoring tests passed, and explicit invariants verified shared candidate IDs and paired coverage. Paid-service cost was $0.</p>
+            <p>Both models ran locally in FP16 on a GTX 1650 with 4 GB of VRAM. The final full-word passes took 68.3 and 99.4 seconds. Five project scoring tests passed, and explicit invariants verified exact decoded word spans, paired word counts and nested cutoffs. Paid-service cost was $0.</p>
             <p>No model or membership probe was trained. The original full-corpus overlap proposal was not completed; corpus samples supplied the controls. Failed search-index requests were not evidence of absence.</p>
             <p>Older checkpoint: <a href="https://huggingface.co/stanford-crfm/battlestar-gpt2-small-x49/tree/2f4e2079c9ac92c2b5c6fecc19fae645bcef56fa">stanford-crfm/battlestar-gpt2-small-x49</a>, 124,439,808 parameters, pinned June 20, 2022 revision. Newer: <a href="https://huggingface.co/openbmb/MiniCPM5-1B-Base/tree/f120ef901e3a11c2ed5fcfd242296cea3e80191b">openbmb/MiniCPM5-1B-Base</a>, 1,080,632,832 parameters, pinned May 25, 2026 revision. The bundle records exact revisions, benchmark dates and source links.</p>
           </details>
